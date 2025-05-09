@@ -5,6 +5,52 @@ alwaysApply: false
 ---
 # Video Handling
 
+## Overview
+The video handling system in Gooji manages video recording, processing, and storage for Ojibwe language and cultural content.
+
+## Core Components
+- Video Handler: [internal/video/handler.go](mdc:internal/video/handler.go)
+- FFmpeg Integration: [pkg/ffmpeg/](mdc:pkg/ffmpeg)
+
+## Video Requirements
+- Supported formats: MP4, WebM
+- Maximum file size: 100MB
+- Storage location: `videos/` directory
+- Processing: FFmpeg v6.1.1 or later
+
+## Processing Pipeline
+1. Video Upload/Recording
+   - Browser-based recording
+   - File upload support
+   - Format validation
+   - Size validation
+
+2. Video Processing
+   - Format standardization
+   - Quality optimization
+   - Metadata extraction
+   - Thumbnail generation
+
+3. Storage and Retrieval
+   - Filesystem storage
+   - Metadata indexing
+   - Streaming support
+
+## Error Handling
+- Format validation errors
+- Size limit exceeded
+- Processing failures
+- Storage errors
+
+## Configuration
+Video-related settings in configuration files:
+```yaml
+video:
+  directory: "./videos"
+  max_size: 100MB
+  allowed_formats: [".mp4", ".webm"]
+```
+
 ## Video Handler
 The [Video Handler](mdc:internal/video/handler.go) manages all video-related operations:
 

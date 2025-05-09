@@ -3,6 +3,7 @@ package video
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"os"
@@ -16,6 +17,7 @@ import (
 type Handler struct {
 	processor *ffmpeg.Processor
 	videoDir  string
+	templates *template.Template
 }
 
 // VideoMetadata represents metadata for a recorded video
@@ -35,9 +37,20 @@ func NewHandler(processor *ffmpeg.Processor, videoDir string) (*Handler, error) 
 		return nil, fmt.Errorf("failed to create video directory: %v", err)
 	}
 
+	// Parse templates
+	templates, err := template.ParseFiles(
+		"web/templates/base.html",
+		"web/templates/record.html",
+		"web/templates/gallery.html",
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse templates: %v", err)
+	}
+
 	return &Handler{
 		processor: processor,
 		videoDir:  videoDir,
+		templates: templates,
 	}, nil
 }
 
@@ -47,7 +60,12 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, "web/templates/index.html")
+	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
+		"Page": "home",
+	}); err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }
 
 // HandleRecord serves the recording page
@@ -56,7 +74,12 @@ func (h *Handler) HandleRecord(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, "web/templates/record.html")
+	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
+		"Page": "record",
+	}); err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }
 
 // HandleEdit serves the video editing page
@@ -65,7 +88,12 @@ func (h *Handler) HandleEdit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, "web/templates/edit.html")
+	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
+		"Page": "edit",
+	}); err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }
 
 // HandleGallery serves the video gallery page
@@ -74,7 +102,12 @@ func (h *Handler) HandleGallery(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, "web/templates/gallery.html")
+	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
+		"Page": "gallery",
+	}); err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }
 
 // HandleVideos handles video-related API endpoints
