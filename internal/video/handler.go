@@ -117,10 +117,10 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 
 	// Create unique filename
 	filename := fmt.Sprintf("%d_%s", time.Now().Unix(), header.Filename)
-	filepath := filepath.Join(h.videoDir, filename)
+	videoPath := filepath.Join(h.videoDir, filename)
 
 	// Save file
-	dst, err := os.Create(filepath)
+	dst, err := os.Create(videoPath)
 	if err != nil {
 		http.Error(w, "Failed to save video", http.StatusInternalServerError)
 		return
@@ -133,7 +133,7 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get video metadata
-	info, err := h.processor.GetVideoInfo(filepath)
+	info, err := h.processor.GetVideoInfo(videoPath)
 	if err != nil {
 		http.Error(w, "Failed to get video info", http.StatusInternalServerError)
 		return
@@ -166,7 +166,7 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 
 	// Generate thumbnail
 	thumbnailPath := filepath.Join(h.videoDir, filename+".jpg")
-	if err := h.processor.GenerateThumbnail(filepath, thumbnailPath, 1); err != nil {
+	if err := h.processor.GenerateThumbnail(videoPath, thumbnailPath, 1); err != nil {
 		// Log error but don't fail the request
 		fmt.Printf("Failed to generate thumbnail: %v\n", err)
 	}
@@ -187,13 +187,13 @@ func (h *Handler) GetVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filepath := filepath.Join(h.videoDir, id)
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+	videoPath := filepath.Join(h.videoDir, id)
+	if _, err := os.Stat(videoPath); os.IsNotExist(err) {
 		http.Error(w, "Video not found", http.StatusNotFound)
 		return
 	}
 
-	http.ServeFile(w, r, filepath)
+	http.ServeFile(w, r, videoPath)
 }
 
 // GetThumbnail returns a video thumbnail

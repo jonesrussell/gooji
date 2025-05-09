@@ -5,11 +5,14 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // Logger handles application logging
 type Logger struct {
-	file *os.File
+	zap *zap.Logger
 }
 
 // New creates a new logger
@@ -18,47 +21,66 @@ func New(logDir string) (*Logger, error) {
 		return nil, fmt.Errorf("failed to create log directory: %v", err)
 	}
 
+	// Create log file
 	logFile := filepath.Join(logDir, fmt.Sprintf("gooji_%s.log", time.Now().Format("2006-01-02")))
 	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open log file: %v", err)
 	}
 
+	// Configure Zap encoder
+	encoderConfig := zapcore.EncoderConfig{
+		TimeKey:        "time",
+		LevelKey:       "level",
+		NameKey:        "logger",
+		CallerKey:      "caller",
+		MessageKey:     "msg",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.CapitalLevelEncoder,
+		EncodeTime:     zapcore.ISO8601TimeEncoder,
+		EncodeDuration: zapcore.SecondsDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
+	}
+
+	// Create core with both file and console output
+	core := zapcore.NewTee(
+		zapcore.NewCore(
+			zapcore.NewJSONEncoder(encoderConfig),
+			zapcore.AddSync(file),
+			zapcore.InfoLevel,
+		),
+		zapcore.NewCore(
+			zapcore.NewConsoleEncoder(encoderConfig),
+			zapcore.AddSync(os.Stdout),
+			zapcore.InfoLevel,
+		),
+	)
+
+	// Create logger
+	zapLogger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
+
 	return &Logger{
-		file: file,
+		zap: zapLogger,
 	}, nil
 }
 
-// Close closes the log file
+// Close closes the logger
 func (l *Logger) Close() error {
-	return l.file.Close()
-}
-
-// log writes a log message with the given level
-func (l *Logger) log(level, format string, args ...interface{}) {
-	timestamp := time.Now().Format("2006-01-02 15:04:05")
-	message := fmt.Sprintf(format, args...)
-	logEntry := fmt.Sprintf("[%s] %s: %s\n", timestamp, level, message)
-
-	// Write to file
-	l.file.WriteString(logEntry)
-
-	// Also write to stdout
-	fmt.Print(logEntry)
+	return l.zap.Sync()
 }
 
 // Info logs an info message
 func (l *Logger) Info(format string, args ...interface{}) {
-	l.log("INFO", format, args...)
+	l.zap.Sugar().Infof(format, args...)
 }
 
 // Error logs an error message
 func (l *Logger) Error(format string, args ...interface{}) {
-	l.log("ERROR", format, args...)
+	l.zap.Sugar().Errorf(format, args...)
 }
 
 // Fatal logs a fatal message and exits
 func (l *Logger) Fatal(format string, args ...interface{}) {
-	l.log("FATAL", format, args...)
-	os.Exit(1)
+	l.zap.Sugar().Fatalf(format, args...)
 }

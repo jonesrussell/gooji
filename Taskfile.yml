@@ -1,0 +1,107 @@
+version: '3'
+
+vars:
+  BINARY_NAME: gooji
+  GO_VERSION: '1.24'
+  FFMPEG_VERSION: '6.1.1'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  setup:
+    desc: Set up development environment
+    cmds:
+      - chmod +x scripts/*.sh
+      - ./scripts/setup.sh
+
+  build:
+    desc: Build the application
+    cmds:
+      - go build -o bin/{{.BINARY_NAME}} cmd/gooji/main.go
+
+  run:
+    desc: Run the application
+    deps: [build]
+    cmds:
+      - ./bin/{{.BINARY_NAME}}
+
+  dev:
+    desc: Run the application in development mode with hot reload using Air
+    cmds:
+      - air
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test -v ./...
+
+  lint:
+    desc: Run linters
+    cmds:
+      - ./scripts/lint.sh
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf bin/
+      - rm -rf logs/*
+      - rm -rf videos/*
+
+  docker-build:
+    desc: Build Docker image
+    cmds:
+      - docker build -t {{.BINARY_NAME}}:latest .
+
+  docker-run:
+    desc: Run Docker container
+    deps: [docker-build]
+    cmds:
+      - docker run -p 8080:8080 -v $(pwd)/videos:/app/videos {{.BINARY_NAME}}:latest
+
+  check-deps:
+    desc: Check for outdated dependencies
+    cmds:
+      - go list -u -m all
+
+  update-deps:
+    desc: Update dependencies
+    cmds:
+      - go get -u ./...
+      - go mod tidy
+
+  verify-deps:
+    desc: Verify dependencies and generate go.sum
+    cmds:
+      - ./scripts/verify-deps.sh
+
+  generate:
+    desc: Generate code (if any)
+    cmds:
+      - go generate ./...
+
+  install:
+    desc: Install the application
+    cmds:
+      - go install ./cmd/gooji
+
+  uninstall:
+    desc: Uninstall the application
+    cmds:
+      - rm -f $(go env GOPATH)/bin/{{.BINARY_NAME}}
+
+  check-ffmpeg:
+    desc: Check FFmpeg installation
+    cmds:
+      - ./scripts/check-ffmpeg.sh
+
+  create-config:
+    desc: Create default configuration file
+    cmds:
+      - ./scripts/create-config.sh
+
+  install-air:
+    desc: Install Air for hot reloading
+    cmds:
+      - go install github.com/cosmtrek/air@latest 
