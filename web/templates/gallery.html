@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gooji - Video Gallery</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-red-600 text-white p-4">
+            <h1 class="text-3xl font-bold text-center">Gooji Video Gallery</h1>
+            <p class="text-center text-lg">Browse Ojibwe language and culture videos</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto p-4">
+            <!-- Search and Filter -->
+            <div class="mb-6 bg-white rounded-lg shadow-lg p-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Search</label>
+                        <input type="text" id="search" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Category</label>
+                        <select id="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                            <option value="">All Categories</option>
+                            <option value="language">Language</option>
+                            <option value="culture">Culture</option>
+                            <option value="stories">Stories</option>
+                            <option value="music">Music</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Sort By</label>
+                        <select id="sort" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="title">Title</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Grid -->
+            <div id="video-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Video cards will be added here dynamically -->
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="hidden flex justify-center items-center py-8">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+            </div>
+
+            <!-- Load More Button -->
+            <div class="text-center mt-8">
+                <button id="load-more" class="bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition">
+                    Load More
+                </button>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white p-4 text-center">
+            <p>Created for Sagamok Anishnawbek First Nation</p>
+        </footer>
+    </div>
+
+    <!-- Video Modal -->
+    <div id="video-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-4xl w-full">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="modal-title" class="text-xl font-semibold"></h3>
+                    <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="aspect-w-16 aspect-h-9">
+                    <video id="modal-video" class="w-full h-full rounded-lg" controls>
+                        <source src="" type="video/webm">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div class="mt-4">
+                    <p id="modal-description" class="text-gray-600"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/gallery.js"></script>
+</body>
+</html> 

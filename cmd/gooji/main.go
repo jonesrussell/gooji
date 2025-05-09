@@ -5,14 +5,33 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"gooji/config"
+	"gooji/internal/video"
+	"gooji/pkg/ffmpeg"
 )
 
 func main() {
+	// Load configuration
+	cfg, err := config.Load("config/config.json")
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	// Create video processor
+	processor := ffmpeg.NewProcessor(cfg.FFmpegPath)
+
+	// Create video handler
+	videoHandler, err := video.NewHandler(processor, cfg.VideoDirectory)
+	if err != nil {
+		log.Fatalf("Failed to create video handler: %v", err)
+	}
+
 	// Ensure required directories exist
 	dirs := []string{
 		"web/static",
 		"web/templates",
-		"config",
+		cfg.VideoDirectory,
 	}
 
 	for _, dir := range dirs {
@@ -25,19 +44,20 @@ func main() {
 	fs := http.FileServer(http.Dir("web/static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
+	// API routes
+	http.HandleFunc("/api/videos/upload", videoHandler.HandleUpload)
+	http.HandleFunc("/api/videos", videoHandler.ListVideos)
+	http.HandleFunc("/api/videos/", videoHandler.GetVideo)
+	http.HandleFunc("/api/videos/thumbnail/", videoHandler.GetThumbnail)
+
 	// Main page handler
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, filepath.Join("web/templates", "index.html"))
 	})
 
 	// Start server
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	log.Printf("Starting server on port %s...", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	log.Printf("Starting server on port %s...", cfg.Port)
+	if err := http.ListenAndServe(":"+cfg.Port, nil); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }

@@ -1,0 +1,7 @@
+{
+    "port": "8080",
+    "maxVideoLength": 300,
+    "videoDirectory": "videos",
+    "allowedOrigins": ["*"],
+    "ffmpegPath": "ffmpeg"
+} 
