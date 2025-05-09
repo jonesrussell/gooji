@@ -1,0 +1,32 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Gooji Kiosk Application Overview
+
+Gooji is a web-based kiosk application designed to facilitate the sharing and preservation of Ojibwe language and culture through video content. The application allows users to record, upload, and browse videos related to Ojibwe language learning and cultural content.
+
+## Core Features
+- Video recording and upload functionality
+- Video gallery with search and filtering
+- Responsive web interface optimized for kiosk use
+- Video processing with FFmpeg integration
+
+## Project Structure
+- `internal/` - Core application logic
+  - `video/` - Video handling and processing
+  - `config/` - Configuration management
+  - `middleware/` - HTTP middleware components
+- `web/` - Frontend assets
+  - `templates/` - HTML templates
+  - `static/` - Static assets (CSS, JavaScript)
+- `pkg/` - Shared packages
+  - `ffmpeg/` - FFmpeg integration
+
+## Key Components
+- [Video Handler](mdc:internal/video/handler.go) - Manages video recording and processing
+- [Base Template](mdc:web/templates/base.html) - Main application layout
+- [Recording Interface](mdc:web/templates/record.html) - Video recording page
+- [Gallery Interface](mdc:web/templates/gallery.html) - Video browsing interface
+- [Custom Styling](mdc:web/static/css/style.css) - Application-specific styles

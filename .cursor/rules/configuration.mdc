@@ -1,0 +1,45 @@
+---
+description: 
+globs: config.yaml,internal/config/**/*.go
+alwaysApply: false
+---
+# Configuration System
+
+## Configuration Structure
+The application uses a configuration system to manage various settings:
+
+### Environment Variables
+- `GOOJI_VIDEO_DIR` - Directory for storing video files
+- `GOOJI_PORT` - HTTP server port (default: 8080)
+- `GOOJI_LOG_LEVEL` - Logging level (debug, info, warn, error)
+
+### Configuration File
+The application can be configured through a YAML file:
+
+```yaml
+server:
+  port: 8080
+  host: "0.0.0.0"
+
+video:
+  directory: "./videos"
+  max_size: 100MB
+  allowed_formats: [".mp4", ".webm"]
+
+logging:
+  level: "info"
+  file: "gooji.log"
+```
+
+## Usage
+The configuration is loaded at application startup and can be accessed throughout the application. The system supports:
+- Environment variable overrides
+- Default values
+- Configuration file loading
+- Runtime configuration updates
+
+## Best Practices
+- Use environment variables for sensitive data
+- Keep configuration files in version control
+- Document all configuration options
+- Validate configuration values at startup

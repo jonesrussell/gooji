@@ -1,0 +1,49 @@
+---
+description: This rule provides information about video handling functionality, including API endpoints, data structures, and processing requirements. It should be consulted when working with video-related features or debugging video processing issues.
+globs: 
+alwaysApply: false
+---
+# Video Handling
+
+## Video Handler
+The [Video Handler](mdc:internal/video/handler.go) manages all video-related operations:
+
+### Core Functions
+- Video recording and upload
+- Video metadata management
+- Thumbnail generation
+- Video listing and retrieval
+
+### API Endpoints
+- `GET /` - Home page
+- `GET /record` - Recording page
+- `GET /gallery` - Gallery page
+- `GET /api/videos` - List videos
+- `POST /api/videos` - Upload video
+- `GET /api/videos?id={id}` - Get video
+- `GET /api/videos/thumbnail?id={id}` - Get thumbnail
+
+### Video Processing
+The handler uses FFmpeg for video processing:
+- Video format conversion
+- Thumbnail generation
+- Duration extraction
+- Metadata extraction
+
+### Data Structures
+```go
+type VideoMetadata struct {
+    ID          string    `json:"id"`
+    Filename    string    `json:"filename"`
+    Title       string    `json:"title"`
+    Description string    `json:"description"`
+    Duration    float64   `json:"duration"`
+    CreatedAt   time.Time `json:"created_at"`
+    Tags        []string  `json:"tags"`
+}
+```
+
+### Storage
+- Videos are stored in the configured video directory
+- Each video has an associated metadata JSON file
+- Thumbnails are generated and stored alongside videos

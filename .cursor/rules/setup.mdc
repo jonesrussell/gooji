@@ -1,0 +1,111 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Setup and Installation
+
+## Prerequisites
+- Go 1.21 or later
+- FFmpeg 4.0 or later
+- Git
+- Make (optional)
+
+## Installation Steps
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-org/gooji.git
+cd gooji
+```
+
+### 2. Install Dependencies
+```bash
+go mod download
+```
+
+### 3. Install FFmpeg
+#### Ubuntu/Debian
+```bash
+sudo apt update
+sudo apt install ffmpeg
+```
+
+#### macOS
+```bash
+brew install ffmpeg
+```
+
+#### Windows
+Download from [FFmpeg website](mdc:https:/ffmpeg.org/download.html)
+
+### 4. Build the Application
+```bash
+go build -o gooji
+```
+
+### 5. Configure the Application
+Create a configuration file:
+```yaml
+server:
+  port: 8080
+  host: "0.0.0.0"
+
+video:
+  directory: "./videos"
+  max_size: 100MB
+  allowed_formats: [".mp4", ".webm"]
+
+logging:
+  level: "info"
+  file: "gooji.log"
+```
+
+### 6. Run the Application
+```bash
+./gooji
+```
+
+## Development Setup
+
+### Required Tools
+- Go
+- FFmpeg
+- Node.js (for frontend development)
+- Make (optional)
+
+### Development Commands
+```bash
+# Run tests
+go test ./...
+
+# Build frontend assets
+make build-frontend
+
+# Run development server
+make dev
+```
+
+## Environment Variables
+- `GOOJI_VIDEO_DIR` - Video storage directory
+- `GOOJI_PORT` - HTTP server port
+- `GOOJI_LOG_LEVEL` - Logging level
+
+## Directory Structure
+```
+gooji/
+├── internal/         # Core application code
+├── pkg/             # Shared packages
+├── web/             # Frontend assets
+│   ├── static/      # Static files
+│   └── templates/   # HTML templates
+├── videos/          # Video storage
+└── config.yaml      # Configuration file
+```
+
+## Troubleshooting
+- Check FFmpeg installation: `ffmpeg -version`
+- Verify Go installation: `go version`
+- Check file permissions for video directory
+- Review application logs
+- Ensure required ports are available
