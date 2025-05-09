@@ -1,144 +1,151 @@
-// Gallery functionality
-class VideoGallery {
-    constructor() {
-        this.videos = [];
-        this.page = 1;
-        this.loading = false;
-        this.filters = {
-            search: '',
-            category: '',
-            sort: 'newest'
-        };
+// Gallery elements
+const videoGrid = document.getElementById('videoGrid');
+const loadingIndicator = document.getElementById('loadingIndicator');
+const loadMoreBtn = document.getElementById('loadMoreBtn');
+const searchInput = document.getElementById('searchInput');
+const tagFilter = document.getElementById('tagFilter');
+const sortBy = document.getElementById('sortBy');
 
-        // DOM elements
-        this.videoGrid = document.getElementById('video-grid');
-        this.loadingIndicator = document.getElementById('loading');
-        this.loadMoreBtn = document.getElementById('load-more');
-        this.searchInput = document.getElementById('search');
-        this.categorySelect = document.getElementById('category');
-        this.sortSelect = document.getElementById('sort');
-        this.modal = document.getElementById('video-modal');
-        this.modalVideo = document.getElementById('modal-video');
-        this.modalTitle = document.getElementById('modal-title');
-        this.modalDescription = document.getElementById('modal-description');
-        this.closeModalBtn = document.getElementById('close-modal');
+// Modal elements
+const videoModal = document.getElementById('videoModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalVideo = document.getElementById('modalVideo');
+const modalDescription = document.getElementById('modalDescription');
+const modalTags = document.getElementById('modalTags');
+const closeModal = document.getElementById('closeModal');
 
-        // Bind event handlers
-        this.loadMoreBtn.addEventListener('click', () => this.loadMore());
-        this.searchInput.addEventListener('input', () => this.handleSearch());
-        this.categorySelect.addEventListener('change', () => this.handleFilter());
-        this.sortSelect.addEventListener('change', () => this.handleFilter());
-        this.closeModalBtn.addEventListener('click', () => this.closeModal());
+// State
+let currentPage = 1;
+let isLoading = false;
+let hasMore = true;
 
-        // Initialize
-        this.loadVideos();
-    }
+// Load videos
+async function loadVideos(page = 1, append = false) {
+    if (isLoading || !hasMore) return;
 
-    async loadVideos() {
-        if (this.loading) return;
+    isLoading = true;
+    loadingIndicator.classList.remove('hidden');
+    loadMoreBtn.disabled = true;
 
-        this.loading = true;
-        this.loadingIndicator.classList.remove('hidden');
-        this.loadMoreBtn.classList.add('hidden');
+    try {
+        const search = searchInput.value;
+        const tag = tagFilter.value;
+        const sort = sortBy.value;
 
-        try {
-            const response = await fetch(`/api/videos?page=${this.page}&${new URLSearchParams(this.filters)}`);
-            if (!response.ok) throw new Error('Failed to load videos');
-
-            const videos = await response.json();
-            this.videos = this.page === 1 ? videos : [...this.videos, ...videos];
-            this.renderVideos();
-
-            this.loadMoreBtn.classList.remove('hidden');
-        } catch (error) {
-            console.error('Error loading videos:', error);
-            // Show error message to user
-        } finally {
-            this.loading = false;
-            this.loadingIndicator.classList.add('hidden');
+        const response = await fetch(`/api/videos?page=${page}&search=${search}&tag=${tag}&sort=${sort}`);
+        if (!response.ok) {
+            throw new Error('Failed to load videos');
         }
-    }
 
-    renderVideos() {
-        const start = (this.page - 1) * 12;
-        const end = start + 12;
-        const videosToShow = this.videos.slice(start, end);
+        const videos = await response.json();
+        hasMore = videos.length === 10; // Assuming 10 videos per page
 
-        videosToShow.forEach(video => {
-            const card = this.createVideoCard(video);
-            this.videoGrid.appendChild(card);
+        if (!append) {
+            videoGrid.innerHTML = '';
+        }
+
+        videos.forEach(video => {
+            const videoCard = createVideoCard(video);
+            videoGrid.appendChild(videoCard);
         });
-    }
 
-    createVideoCard(video) {
-        const card = document.createElement('div');
-        card.className = 'bg-white rounded-lg shadow-lg overflow-hidden';
-        card.innerHTML = `
-            <div class="aspect-w-16 aspect-h-9">
-                <img src="${video.thumbnail}" alt="${video.title}" class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-opacity flex items-center justify-center">
-                    <button class="play-button bg-red-600 text-white p-3 rounded-full opacity-0 hover:opacity-100 transition-opacity">
-                        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <div class="p-4">
-                <h3 class="text-lg font-semibold mb-2">${video.title}</h3>
-                <p class="text-gray-600 text-sm mb-2">${video.description}</p>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-500">${new Date(video.created_at).toLocaleDateString()}</span>
-                    <span class="text-sm text-gray-500">${video.duration}s</span>
-                </div>
-            </div>
-        `;
-
-        // Add click handler
-        card.querySelector('.play-button').addEventListener('click', () => this.openModal(video));
-
-        return card;
-    }
-
-    openModal(video) {
-        this.modalVideo.src = video.url;
-        this.modalTitle.textContent = video.title;
-        this.modalDescription.textContent = video.description;
-        this.modal.classList.remove('hidden');
-        this.modalVideo.play();
-    }
-
-    closeModal() {
-        this.modal.classList.add('hidden');
-        this.modalVideo.pause();
-        this.modalVideo.src = '';
-    }
-
-    loadMore() {
-        this.page++;
-        this.loadVideos();
-    }
-
-    handleSearch() {
-        this.filters.search = this.searchInput.value;
-        this.resetAndReload();
-    }
-
-    handleFilter() {
-        this.filters.category = this.categorySelect.value;
-        this.filters.sort = this.sortSelect.value;
-        this.resetAndReload();
-    }
-
-    resetAndReload() {
-        this.page = 1;
-        this.videoGrid.innerHTML = '';
-        this.loadVideos();
+        currentPage = page;
+    } catch (err) {
+        console.error('Error loading videos:', err);
+    } finally {
+        isLoading = false;
+        loadingIndicator.classList.add('hidden');
+        loadMoreBtn.disabled = false;
     }
 }
 
-// Initialize gallery when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    new VideoGallery();
-}); 
+// Create video card
+function createVideoCard(video) {
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-lg shadow-md overflow-hidden';
+    card.innerHTML = `
+        <div class="aspect-w-16 aspect-h-9 cursor-pointer">
+            <img src="/api/videos/thumbnail?id=${video.id}" alt="${video.title}" class="w-full h-full object-cover">
+        </div>
+        <div class="p-4">
+            <h3 class="font-semibold text-gray-800">${video.title}</h3>
+            <p class="text-sm text-gray-600 mt-1">${video.description}</p>
+            <div class="mt-2 flex flex-wrap gap-2">
+                ${video.tags.map(tag => `
+                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">${tag}</span>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    // Add click handler to open modal
+    card.querySelector('.aspect-w-16').addEventListener('click', () => {
+        openVideoModal(video);
+    });
+
+    return card;
+}
+
+// Open video modal
+function openVideoModal(video) {
+    modalTitle.textContent = video.title;
+    modalVideo.src = `/api/videos?id=${video.id}`;
+    modalDescription.textContent = video.description;
+    
+    modalTags.innerHTML = video.tags.map(tag => `
+        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">${tag}</span>
+    `).join('');
+
+    videoModal.classList.remove('hidden');
+    modalVideo.play();
+}
+
+// Close video modal
+function closeVideoModal() {
+    videoModal.classList.add('hidden');
+    modalVideo.pause();
+    modalVideo.src = '';
+}
+
+// Event listeners
+loadMoreBtn.addEventListener('click', () => {
+    loadVideos(currentPage + 1, true);
+});
+
+searchInput.addEventListener('input', debounce(() => {
+    currentPage = 1;
+    loadVideos(1);
+}, 300));
+
+tagFilter.addEventListener('change', () => {
+    currentPage = 1;
+    loadVideos(1);
+});
+
+sortBy.addEventListener('change', () => {
+    currentPage = 1;
+    loadVideos(1);
+});
+
+closeModal.addEventListener('click', closeVideoModal);
+videoModal.addEventListener('click', (e) => {
+    if (e.target === videoModal) {
+        closeVideoModal();
+    }
+});
+
+// Utility function for debouncing
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Initialize
+loadVideos(1); 

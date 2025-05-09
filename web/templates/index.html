@@ -17,37 +17,26 @@
 
         <!-- Main Content -->
         <main class="flex-grow container mx-auto p-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Video Preview -->
-                <div class="bg-white rounded-lg shadow-lg p-4">
-                    <h2 class="text-xl font-semibold mb-4">Video Preview</h2>
-                    <div class="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg">
-                        <video id="preview" class="w-full h-full rounded-lg" autoplay muted></video>
-                    </div>
-                </div>
-
-                <!-- Controls -->
-                <div class="bg-white rounded-lg shadow-lg p-4">
-                    <h2 class="text-xl font-semibold mb-4">Controls</h2>
-                    <div class="space-y-4">
-                        <button id="recordBtn" class="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition">
+            <div class="text-center py-12">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">Welcome to Gooji</h1>
+                <p class="text-xl text-gray-600 mb-8">Share your Ojibwe language and culture through video</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Record a Video</h2>
+                        <p class="text-gray-600 mb-4">Share your knowledge, stories, or language lessons through video.</p>
+                        <a href="/record" class="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
                             Start Recording
-                        </button>
-                        <button id="stopBtn" class="w-full bg-gray-600 text-white py-3 px-6 rounded-lg hover:bg-gray-700 transition" disabled>
-                            Stop Recording
-                        </button>
-                        <button id="playBtn" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition" disabled>
-                            Play Recording
-                        </button>
+                        </a>
                     </div>
-                </div>
-            </div>
-
-            <!-- Recording List -->
-            <div class="mt-8 bg-white rounded-lg shadow-lg p-4">
-                <h2 class="text-xl font-semibold mb-4">Your Recordings</h2>
-                <div id="recordingsList" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Recordings will be added here dynamically -->
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Browse Gallery</h2>
+                        <p class="text-gray-600 mb-4">Watch and learn from videos shared by the community.</p>
+                        <a href="/gallery" class="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                            View Gallery
+                        </a>
+                    </div>
                 </div>
             </div>
         </main>
