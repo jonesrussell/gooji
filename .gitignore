@@ -21,7 +21,6 @@ air_errors.log
 
 # IDE specific files
 .idea/
-.vscode/
 *.swp
 *.swo
 .DS_Store
