@@ -1,63 +1,90 @@
 package main
 
 import (
-	"log"
+	"context"
+	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"gooji/config"
+	"gooji/internal/config"
+	"gooji/internal/logger"
+	"gooji/internal/middleware"
 	"gooji/internal/video"
-	"gooji/pkg/ffmpeg"
 )
 
 func main() {
 	// Load configuration
 	cfg, err := config.Load("config/config.json")
 	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+		fmt.Printf("Failed to load configuration: %v\n", err)
+		os.Exit(1)
 	}
+
+	// Initialize logger
+	log, err := logger.New("logs")
+	if err != nil {
+		fmt.Printf("Failed to initialize logger: %v\n", err)
+		os.Exit(1)
+	}
+	defer log.Close()
 
 	// Create video processor
-	processor := ffmpeg.NewProcessor(cfg.FFmpegPath)
+	processor, err := video.NewProcessor(cfg.Video)
+	if err != nil {
+		log.Fatal("Failed to create video processor: %v", err)
+	}
 
 	// Create video handler
-	videoHandler, err := video.NewHandler(processor, cfg.VideoDirectory)
-	if err != nil {
-		log.Fatalf("Failed to create video handler: %v", err)
-	}
+	handler := video.NewHandler(processor, log)
 
-	// Ensure required directories exist
-	dirs := []string{
-		"web/static",
-		"web/templates",
-		cfg.VideoDirectory,
-	}
-
-	for _, dir := range dirs {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			log.Fatalf("Failed to create directory %s: %v", dir, err)
-		}
-	}
+	// Create router
+	mux := http.NewServeMux()
 
 	// Serve static files
 	fs := http.FileServer(http.Dir("web/static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	// API routes
-	http.HandleFunc("/api/videos/upload", videoHandler.HandleUpload)
-	http.HandleFunc("/api/videos", videoHandler.ListVideos)
-	http.HandleFunc("/api/videos/", videoHandler.GetVideo)
-	http.HandleFunc("/api/videos/thumbnail/", videoHandler.GetThumbnail)
+	mux.HandleFunc("/api/videos", handler.HandleVideos)
+	mux.HandleFunc("/api/videos/", handler.HandleVideo)
 
-	// Main page handler
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, filepath.Join("web/templates", "index.html"))
-	})
+	// Page routes
+	mux.HandleFunc("/", handler.HandleHome)
+	mux.HandleFunc("/record", handler.HandleRecord)
+	mux.HandleFunc("/edit/", handler.HandleEdit)
+	mux.HandleFunc("/gallery", handler.HandleGallery)
 
-	// Start server
-	log.Printf("Starting server on port %s...", cfg.Port)
-	if err := http.ListenAndServe(":"+cfg.Port, nil); err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+	// Create server with middleware
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
+		Handler: middleware.Chain(mux, middleware.Logging(log), middleware.Recovery(log), middleware.CORS()),
 	}
+
+	// Start server in a goroutine
+	go func() {
+		log.Info("Starting server on port %d", cfg.Server.Port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal("Failed to start server: %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	// Create shutdown context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Attempt graceful shutdown
+	log.Info("Shutting down server...")
+	if err := server.Shutdown(ctx); err != nil {
+		log.Error("Server forced to shutdown: %v", err)
+	}
+
+	log.Info("Server stopped")
 }
