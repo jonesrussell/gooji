@@ -104,4 +104,14 @@ tasks:
   install-air:
     desc: Install Air for hot reloading
     cmds:
-      - go install github.com/cosmtrek/air@latest 
+      - go install github.com/air-verse/air@latest
+
+  check-ffmpeg:
+    desc: Check FFmpeg installation
+    cmds:
+      - ./scripts/check-ffmpeg.sh
+
+  create-config:
+    desc: Create default configuration file
+    cmds:
+      - ./scripts/create-config.sh 

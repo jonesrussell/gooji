@@ -1,0 +1,41 @@
+# Binary files
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with 'go test -c'
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+vendor/
+
+# Air hot reload
+tmp/
+air_errors.log
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Application specific
+videos/
+logs/
+*.log
+config.yaml
+config.yml
+
+# Go workspace file
+go.work
+
+# Environment variables
+.env
+.env.local 
