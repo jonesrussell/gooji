@@ -24,7 +24,7 @@ type VideoMetadata struct {
 	Filename    string    `json:"filename"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
-	Duration    int       `json:"duration"`
+	Duration    float64   `json:"duration"`
 	CreatedAt   time.Time `json:"created_at"`
 	Tags        []string  `json:"tags"`
 }
@@ -41,13 +41,66 @@ func NewHandler(processor *ffmpeg.Processor, videoDir string) (*Handler, error) 
 	}, nil
 }
 
-// HandleUpload processes an uploaded video file
-func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+// HandleHome serves the home page
+func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	http.ServeFile(w, r, "web/templates/index.html")
+}
 
+// HandleRecord serves the recording page
+func (h *Handler) HandleRecord(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	http.ServeFile(w, r, "web/templates/record.html")
+}
+
+// HandleEdit serves the video editing page
+func (h *Handler) HandleEdit(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	http.ServeFile(w, r, "web/templates/edit.html")
+}
+
+// HandleGallery serves the video gallery page
+func (h *Handler) HandleGallery(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	http.ServeFile(w, r, "web/templates/gallery.html")
+}
+
+// HandleVideos handles video-related API endpoints
+func (h *Handler) HandleVideos(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.ListVideos(w, r)
+	case http.MethodPost:
+		h.HandleUpload(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+// HandleVideo handles individual video API endpoints
+func (h *Handler) HandleVideo(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.GetVideo(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+// HandleUpload processes an uploaded video file
+func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	// Parse multipart form
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		http.Error(w, "Failed to parse form", http.StatusBadRequest)
@@ -80,7 +133,7 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get video metadata
-	_, err = h.processor.GetVideoInfo(filepath)
+	info, err := h.processor.GetVideoInfo(filepath)
 	if err != nil {
 		http.Error(w, "Failed to get video info", http.StatusInternalServerError)
 		return
@@ -92,6 +145,7 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		Filename:    filename,
 		Title:       r.FormValue("title"),
 		Description: r.FormValue("description"),
+		Duration:    info.Duration,
 		CreatedAt:   time.Now(),
 		Tags:        []string{"ojibwe", "language", "culture"},
 	}
@@ -127,11 +181,6 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 
 // GetVideo returns a video file
 func (h *Handler) GetVideo(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	id := r.URL.Query().Get("id")
 	if id == "" {
 		http.Error(w, "Missing video ID", http.StatusBadRequest)
@@ -171,11 +220,6 @@ func (h *Handler) GetThumbnail(w http.ResponseWriter, r *http.Request) {
 
 // ListVideos returns a list of available videos
 func (h *Handler) ListVideos(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	files, err := os.ReadDir(h.videoDir)
 	if err != nil {
 		http.Error(w, "Failed to list videos", http.StatusInternalServerError)
