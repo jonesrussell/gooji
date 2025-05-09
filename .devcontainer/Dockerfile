@@ -2,8 +2,8 @@ ARG VARIANT=1-1-bookworm
 FROM mcr.microsoft.com/devcontainers/go:${VARIANT}
 
 # [Optional] Uncomment this section to install additional OS packages.
-# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-#     && apt-get -y install --no-install-recommends <your-package-list-here>
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends ffmpeg
 
 # [Optional] Uncomment the next lines to use go get to install anything else you need
 USER vscode
@@ -14,7 +14,7 @@ RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest && 
     go install github.com/air-verse/air@latest
 
 # Install dependencies and build the template package
-RUN cd /workspaces/goforms-template && npm install && npm run build && npm link || true
+# RUN cd /workspaces/goforms-template && npm install && npm run build && npm link || true
 
 USER root
 
