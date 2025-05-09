@@ -13,6 +13,7 @@ import (
 	"gooji/internal/logger"
 	"gooji/internal/middleware"
 	"gooji/internal/video"
+	"gooji/pkg/ffmpeg"
 )
 
 func main() {
@@ -32,13 +33,13 @@ func main() {
 	defer log.Close()
 
 	// Create video processor
-	processor, err := video.NewProcessor(cfg.Video)
-	if err != nil {
-		log.Fatal("Failed to create video processor: %v", err)
-	}
+	processor := ffmpeg.NewProcessor(cfg.FFmpeg.Path)
 
 	// Create video handler
-	handler := video.NewHandler(processor, log)
+	handler, err := video.NewHandler(processor, cfg.Video.StoragePath)
+	if err != nil {
+		log.Fatal("Failed to create video handler: %v", err)
+	}
 
 	// Create router
 	mux := http.NewServeMux()
