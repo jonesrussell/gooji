@@ -25,7 +25,7 @@ func main() {
 	}
 
 	// Initialize logger
-	log, err := logger.New("logs")
+	log, err := logger.New(cfg.Storage.Logs)
 	if err != nil {
 		fmt.Printf("Failed to initialize logger: %v\n", err)
 		os.Exit(1)
@@ -36,7 +36,7 @@ func main() {
 	processor := ffmpeg.NewProcessor(cfg.FFmpeg.Path)
 
 	// Create video handler
-	handler, err := video.NewHandler(processor, cfg.Video.StoragePath)
+	handler, err := video.NewHandler(processor, cfg.Storage)
 	if err != nil {
 		log.Fatal("Failed to create video handler: %v", err)
 	}

@@ -38,3 +38,4 @@ go.work
 # Environment variables
 .env
 .env.local 
+storage/

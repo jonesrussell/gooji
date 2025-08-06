@@ -11,13 +11,14 @@ import (
 	"path/filepath"
 	"time"
 
+	"gooji/internal/config"
 	"gooji/pkg/ffmpeg"
 )
 
 // Handler manages video recording and processing
 type Handler struct {
 	processor *ffmpeg.Processor
-	videoDir  string
+	storage   config.Storage
 	templates *template.Template
 }
 
@@ -33,9 +34,13 @@ type VideoMetadata struct {
 }
 
 // NewHandler creates a new video handler
-func NewHandler(processor *ffmpeg.Processor, videoDir string) (*Handler, error) {
-	if err := os.MkdirAll(videoDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create video directory: %v", err)
+func NewHandler(processor *ffmpeg.Processor, storage config.Storage) (*Handler, error) {
+	// Create storage directories
+	dirs := []string{storage.Uploads, storage.Temp, storage.Logs, storage.Thumbnails, storage.Metadata}
+	for _, dir := range dirs {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return nil, fmt.Errorf("failed to create directory %s: %v", dir, err)
+		}
 	}
 
 	// Parse templates
@@ -50,7 +55,7 @@ func NewHandler(processor *ffmpeg.Processor, videoDir string) (*Handler, error) 
 
 	return &Handler{
 		processor: processor,
-		videoDir:  videoDir,
+		storage:   storage,
 		templates: templates,
 	}, nil
 }
@@ -125,10 +130,10 @@ func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check video directory
-	videoDirAccessible := false
-	if _, err := os.Stat(h.videoDir); err == nil {
-		videoDirAccessible = true
-	}
+			videoDirAccessible := false
+		if _, err := os.Stat(h.storage.Uploads); err == nil {
+			videoDirAccessible = true
+		}
 
 	health := map[string]interface{}{
 		"status":    "healthy",
@@ -183,7 +188,7 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 
 	// Create unique filename
 	filename := fmt.Sprintf("%d_%s", time.Now().Unix(), header.Filename)
-	videoPath := filepath.Join(h.videoDir, filename)
+	videoPath := filepath.Join(h.storage.Uploads, filename)
 
 	// Save file
 	dst, err := os.Create(videoPath)
@@ -219,7 +224,7 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save metadata
-	metadataPath := filepath.Join(h.videoDir, filename+".json")
+	metadataPath := filepath.Join(h.storage.Metadata, filename+".json")
 	metadataFile, err := os.Create(metadataPath)
 	if err != nil {
 		http.Error(w, "Failed to save metadata", http.StatusInternalServerError)
@@ -233,7 +238,7 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate thumbnail
-	thumbnailPath := filepath.Join(h.videoDir, filename+".jpg")
+	thumbnailPath := filepath.Join(h.storage.Thumbnails, filename+".jpg")
 	if err := h.processor.GenerateThumbnail(videoPath, thumbnailPath, 1); err != nil {
 		// Log error but don't fail the request
 		fmt.Printf("Failed to generate thumbnail for %s: %v\n", videoPath, err)
@@ -257,7 +262,7 @@ func (h *Handler) GetVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	videoPath := filepath.Join(h.videoDir, id)
+	videoPath := filepath.Join(h.storage.Uploads, id)
 	if _, err := os.Stat(videoPath); os.IsNotExist(err) {
 		http.Error(w, "Video not found", http.StatusNotFound)
 		return
@@ -279,7 +284,7 @@ func (h *Handler) GetThumbnail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	thumbnailPath := filepath.Join(h.videoDir, id+".jpg")
+	thumbnailPath := filepath.Join(h.storage.Thumbnails, id+".jpg")
 	if _, err := os.Stat(thumbnailPath); os.IsNotExist(err) {
 		http.Error(w, "Thumbnail not found", http.StatusNotFound)
 		return
@@ -290,7 +295,7 @@ func (h *Handler) GetThumbnail(w http.ResponseWriter, r *http.Request) {
 
 // ListVideos returns a list of available videos
 func (h *Handler) ListVideos(w http.ResponseWriter, r *http.Request) {
-	files, err := os.ReadDir(h.videoDir)
+	files, err := os.ReadDir(h.storage.Metadata)
 	if err != nil {
 		http.Error(w, "Failed to list videos", http.StatusInternalServerError)
 		return
@@ -299,7 +304,7 @@ func (h *Handler) ListVideos(w http.ResponseWriter, r *http.Request) {
 	var videos []VideoMetadata
 	for _, file := range files {
 		if filepath.Ext(file.Name()) == ".json" {
-			metadataPath := filepath.Join(h.videoDir, file.Name())
+			metadataPath := filepath.Join(h.storage.Metadata, file.Name())
 			metadataFile, err := os.Open(metadataPath)
 			if err != nil {
 				continue

@@ -2,8 +2,15 @@
     "server": {
         "port": 8080
     },
+    "storage": {
+        "base_path": "storage",
+        "uploads": "storage/uploads",
+        "temp": "storage/temp",
+        "logs": "storage/logs",
+        "thumbnails": "storage/thumbnails",
+        "metadata": "storage/metadata"
+    },
     "video": {
-        "storage_path": "videos",
         "max_size": 104857600,
         "allowed_types": [
             "video/mp4",

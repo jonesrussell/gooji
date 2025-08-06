@@ -6,13 +6,23 @@ import (
 	"os"
 )
 
+// Storage holds storage configuration
+type Storage struct {
+	BasePath   string `json:"base_path"`
+	Uploads    string `json:"uploads"`
+	Temp       string `json:"temp"`
+	Logs       string `json:"logs"`
+	Thumbnails string `json:"thumbnails"`
+	Metadata   string `json:"metadata"`
+}
+
 // Config holds the application configuration
 type Config struct {
 	Server struct {
 		Port int `json:"port"`
 	} `json:"server"`
+	Storage Storage `json:"storage"`
 	Video struct {
-		StoragePath  string   `json:"storage_path"`
 		MaxSize      int64    `json:"max_size"`
 		AllowedTypes []string `json:"allowed_types"`
 	} `json:"video"`
@@ -38,8 +48,23 @@ func Load(path string) (*Config, error) {
 	if config.Server.Port == 0 {
 		config.Server.Port = 8080
 	}
-	if config.Video.StoragePath == "" {
-		config.Video.StoragePath = "videos"
+	if config.Storage.BasePath == "" {
+		config.Storage.BasePath = "storage"
+	}
+	if config.Storage.Uploads == "" {
+		config.Storage.Uploads = "storage/uploads"
+	}
+	if config.Storage.Temp == "" {
+		config.Storage.Temp = "storage/temp"
+	}
+	if config.Storage.Logs == "" {
+		config.Storage.Logs = "storage/logs"
+	}
+	if config.Storage.Thumbnails == "" {
+		config.Storage.Thumbnails = "storage/thumbnails"
+	}
+	if config.Storage.Metadata == "" {
+		config.Storage.Metadata = "storage/metadata"
 	}
 	if config.Video.MaxSize == 0 {
 		config.Video.MaxSize = 100 * 1024 * 1024 // 100MB
