@@ -19,35 +19,49 @@ tasks:
   build:
     desc: Build the application
     cmds:
-      - go build -o bin/{{.BINARY_NAME}} cmd/gooji/main.go
+      - go build -o bin/{{.BINARY_NAME}} main.go
 
   run:
-    desc: Run the application
-    deps: [build]
+    desc: Run the application (production mode)
     cmds:
-      - ./bin/{{.BINARY_NAME}}
+      - go run main.go
 
   dev:
     desc: Run the application in development mode with hot reload using Air
     cmds:
-      - air
+      - go run github.com/air-verse/air@latest
 
   test:
-    desc: Run tests
+    desc: Run tests with coverage
     cmds:
-      - go test -v ./...
+      - go test -v -race -cover ./...
+
+  test-coverage:
+    desc: Generate test coverage report
+    cmds:
+      - go test -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out -o coverage.html
 
   lint:
-    desc: Run linters
+    desc: Run modern Go linting tools
+    cmds:
+      - go vet ./...
+      - go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+      - go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+  lint-legacy:
+    desc: Run legacy linters (if golangci-lint is installed)
     cmds:
       - ./scripts/lint.sh
 
   clean:
-    desc: Clean build artifacts
+    desc: Clean build artifacts and temporary files
     cmds:
       - rm -rf bin/
       - rm -rf logs/*
       - rm -rf videos/*
+      - rm -f coverage.out coverage.html
+      - go clean -cache -testcache
 
   docker-build:
     desc: Build Docker image
@@ -84,7 +98,7 @@ tasks:
   install:
     desc: Install the application
     cmds:
-      - go install ./cmd/gooji
+      - go install .
 
   uninstall:
     desc: Uninstall the application
@@ -96,22 +110,35 @@ tasks:
     cmds:
       - ./scripts/check-ffmpeg.sh
 
+  check-env:
+    desc: Check development environment
+    cmds:
+      - ./scripts/check-env.sh
+
   create-config:
     desc: Create default configuration file
     cmds:
       - ./scripts/create-config.sh
 
-  install-air:
-    desc: Install Air for hot reloading
+  install-tools:
+    desc: Install development tools
     cmds:
       - go install github.com/air-verse/air@latest
+      - go install honnef.co/go/tools/cmd/staticcheck@latest
+      - go install golang.org/x/vuln/cmd/govulncheck@latest
 
-  check-ffmpeg:
-    desc: Check FFmpeg installation
+  security-scan:
+    desc: Run security vulnerability scan
     cmds:
-      - ./scripts/check-ffmpeg.sh
+      - go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
-  create-config:
-    desc: Create default configuration file
+  format:
+    desc: Format Go code
     cmds:
-      - ./scripts/create-config.sh 
+      - go fmt ./...
+
+  tidy:
+    desc: Tidy Go modules
+    cmds:
+      - go mod tidy
+      - go mod verify 

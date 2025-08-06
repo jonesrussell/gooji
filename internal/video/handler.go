@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -110,6 +111,38 @@ func (h *Handler) HandleGallery(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HandleHealth provides system health information
+func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Test FFmpeg availability
+	ffmpegWorking := false
+	if _, err := exec.LookPath("ffmpeg"); err == nil {
+		ffmpegWorking = true
+	}
+
+	// Check video directory
+	videoDirAccessible := false
+	if _, err := os.Stat(h.videoDir); err == nil {
+		videoDirAccessible = true
+	}
+
+	health := map[string]interface{}{
+		"status":    "healthy",
+		"timestamp": time.Now(),
+		"checks": map[string]bool{
+			"ffmpeg":    ffmpegWorking,
+			"video_dir": videoDirAccessible,
+		},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(health)
+}
+
 // HandleVideos handles video-related API endpoints
 func (h *Handler) HandleVideos(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -168,7 +201,9 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	// Get video metadata
 	info, err := h.processor.GetVideoInfo(videoPath)
 	if err != nil {
-		http.Error(w, "Failed to get video info", http.StatusInternalServerError)
+		// Log the specific error for debugging
+		fmt.Printf("FFmpeg error for file %s: %v\n", videoPath, err)
+		http.Error(w, fmt.Sprintf("Failed to process video: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -201,7 +236,9 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	thumbnailPath := filepath.Join(h.videoDir, filename+".jpg")
 	if err := h.processor.GenerateThumbnail(videoPath, thumbnailPath, 1); err != nil {
 		// Log error but don't fail the request
-		fmt.Printf("Failed to generate thumbnail: %v\n", err)
+		fmt.Printf("Failed to generate thumbnail for %s: %v\n", videoPath, err)
+	} else {
+		fmt.Printf("Successfully generated thumbnail: %s\n", thumbnailPath)
 	}
 
 	// Return success response

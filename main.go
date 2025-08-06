@@ -58,6 +58,9 @@ func main() {
 	mux.HandleFunc("/edit/", handler.HandleEdit)
 	mux.HandleFunc("/gallery", handler.HandleGallery)
 
+	// Health check endpoint
+	mux.HandleFunc("/health", handler.HandleHealth)
+
 	// Create server with middleware
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
