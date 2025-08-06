@@ -76,6 +76,64 @@ func CORS(allowedOrigins []string) Middleware {
 }
 ```
 
+#### [SEC-004] Input Validation for Video Metadata
+- **Status**: 🔴 Critical
+- **Effort**: 1 day
+- **Location**: `internal/video/handler.go`
+- **Issue**: Title, description, and tags not validated for XSS/injection
+- **Tasks**:
+  - [ ] Implement HTML sanitization for user inputs
+  - [ ] Add length limits for metadata fields
+  - [ ] Validate tag format and content
+  - [ ] Implement content filtering
+- **Implementation**:
+```go
+import "html"
+
+func sanitizeMetadata(metadata *VideoMetadata) error {
+    metadata.Title = html.EscapeString(strings.TrimSpace(metadata.Title))
+    metadata.Description = html.EscapeString(strings.TrimSpace(metadata.Description))
+    
+    if len(metadata.Title) > 100 {
+        return errors.New("title too long")
+    }
+    
+    // Validate and sanitize tags
+    for i, tag := range metadata.Tags {
+        metadata.Tags[i] = html.EscapeString(strings.TrimSpace(tag))
+    }
+    
+    return nil
+}
+```
+
+#### [SEC-005] Rate Limiting for Upload Endpoints
+- **Status**: 🔴 Critical
+- **Effort**: 1-2 days
+- **Location**: `internal/middleware/middleware.go`
+- **Issue**: No protection against abuse/DoS attacks
+- **Tasks**:
+  - [ ] Implement rate limiting middleware
+  - [ ] Add IP-based request limiting
+  - [ ] Configure different limits for different endpoints
+- **Implementation**:
+```go
+import "golang.org/x/time/rate"
+
+func RateLimitMiddleware(r rate.Limit, b int) Middleware {
+    limiter := rate.NewLimiter(r, b)
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+            if !limiter.Allow() {
+                http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+                return
+            }
+            next.ServeHTTP(w, req)
+        })
+    }
+}
+```
+
 ### Testing Infrastructure
 
 #### [TEST-001] Implement Basic Testing Framework
@@ -108,7 +166,94 @@ test-coverage:
     - go tool cover -html=coverage.out -o coverage.html
 ```
 
+#### [TEST-002] Test Data Management
+- **Status**: 🟡 High
+- **Effort**: 1 day
+- **Tasks**:
+  - [ ] Create test video files of various formats/sizes
+  - [ ] Set up test fixtures and helpers
+  - [ ] Implement test cleanup utilities
+- **Implementation**:
+```go
+// tests/fixtures/video_fixtures.go
+func CreateTestVideo(t *testing.T, format string, duration int) string {
+    // Generate test video file
+    // Return path to test file
+}
+
+func CleanupTestFiles(t *testing.T, paths []string) {
+    t.Cleanup(func() {
+        for _, path := range paths {
+            os.Remove(path)
+        }
+    })
+}
+```
+
+#### [TEST-003] Mock FFmpeg for Testing
+- **Status**: 🟡 High
+- **Effort**: 1-2 days
+- **Tasks**:
+  - [ ] Create FFmpeg mock interface
+  - [ ] Implement test doubles
+  - [ ] Add dependency injection for testing
+- **Implementation**:
+```go
+type FFmpegProcessor interface {
+    GetVideoInfo(inputPath string) (*VideoInfo, error)
+    GenerateThumbnail(inputPath, outputPath string, timestamp float64) error
+}
+
+type MockFFmpegProcessor struct {
+    // Mock implementation
+}
+```
+
 ## ⚠️ **HIGH PRIORITY** (Fix Within 1-2 Weeks)
+
+### Enhanced Security Measures
+
+#### [SEC-006] Content Security Policy (CSP)
+- **Status**: 🟡 High
+- **Effort**: 0.5 days
+- **Issue**: No CSP headers for XSS protection
+- **Tasks**:
+  - [ ] Add CSP middleware
+  - [ ] Configure appropriate CSP directives
+  - [ ] Test with frontend functionality
+- **Implementation**:
+```go
+func CSPMiddleware() Middleware {
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            w.Header().Set("Content-Security-Policy", 
+                "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net")
+            next.ServeHTTP(w, r)
+        })
+    }
+}
+```
+
+#### [SEC-007] Secure Headers Package
+- **Status**: 🟡 High
+- **Effort**: 0.5 days
+- **Tasks**:
+  - [ ] Add security headers middleware
+  - [ ] Implement HSTS, X-Frame-Options, etc.
+- **Implementation**:
+```go
+func SecurityHeadersMiddleware() Middleware {
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            w.Header().Set("X-Content-Type-Options", "nosniff")
+            w.Header().Set("X-Frame-Options", "DENY")
+            w.Header().Set("X-XSS-Protection", "1; mode=block")
+            w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+            next.ServeHTTP(w, r)
+        })
+    }
+}
+```
 
 ### Code Architecture Issues
 
@@ -204,6 +349,51 @@ return fmt.Errorf("failed to process video %s: %w", videoPath, err)
 ```
 
 ## 📊 **MEDIUM PRIORITY** (Fix Within 1 Month)
+
+### Monitoring & Observability
+
+#### [MON-001] Structured Logging
+- **Status**: 🟡 High
+- **Effort**: 1 day
+- **Tasks**:
+  - [ ] Replace custom logger with structured logging (logrus/zap)
+  - [ ] Add request correlation IDs
+  - [ ] Implement log levels and configuration
+- **Implementation**:
+```go
+import "go.uber.org/zap"
+
+type Logger struct {
+    logger *zap.Logger
+}
+
+func (l *Logger) InfoWithFields(msg string, fields map[string]interface{}) {
+    l.logger.Info(msg, zap.Any("fields", fields))
+}
+```
+
+#### [MON-002] Health Check Endpoints
+- **Status**: 🟡 Medium
+- **Effort**: 0.5 days
+- **Tasks**:
+  - [ ] Add /health endpoint
+  - [ ] Check FFmpeg availability
+  - [ ] Check video directory accessibility
+- **Implementation**:
+```go
+func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
+    health := map[string]interface{}{
+        "status": "healthy",
+        "timestamp": time.Now(),
+        "checks": map[string]bool{
+            "ffmpeg": h.checkFFmpeg(),
+            "video_dir": h.checkVideoDir(),
+        },
+    }
+    
+    json.NewEncoder(w).Encode(health)
+}
+```
 
 ### Resource Management
 
@@ -320,6 +510,42 @@ class ApiClient {
 ```
 
 ## 💡 **LOW PRIORITY** (Fix Within 2-3 Months)
+
+### DevOps & Deployment
+
+#### [DEVOPS-001] Docker Support
+- **Status**: 🟢 Low
+- **Effort**: 1-2 days
+- **Tasks**:
+  - [ ] Create optimized Dockerfile
+  - [ ] Add docker-compose for development
+  - [ ] Configure volume mounts for videos
+- **Implementation**:
+```dockerfile
+FROM golang:1.21-alpine AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN go build -o gooji cmd/gooji/main.go
+
+FROM alpine:latest
+RUN apk add --no-cache ffmpeg
+WORKDIR /app
+COPY --from=builder /app/gooji .
+COPY --from=builder /app/web ./web
+EXPOSE 8080
+CMD ["./gooji"]
+```
+
+#### [DEVOPS-002] CI/CD Pipeline
+- **Status**: 🟢 Low
+- **Effort**: 2-3 days
+- **Tasks**:
+  - [ ] Set up GitHub Actions workflow
+  - [ ] Add automated testing
+  - [ ] Configure security scanning
+  - [ ] Add deployment automation
 
 ### Documentation
 
@@ -472,6 +698,24 @@ type Metrics struct {
 - [ ] Maintain <100ms response time for API calls
 - [ ] Support concurrent uploads
 
+### Security Metrics
+- [ ] Zero high-severity security vulnerabilities
+- [ ] Pass OWASP security checklist
+- [ ] Implement all recommended security headers
+- [ ] Rate limiting prevents >99% of abuse attempts
+
+### User Experience Metrics
+- [ ] Video upload success rate >95%
+- [ ] Page load time <2 seconds
+- [ ] Mobile responsiveness score >90
+- [ ] Accessibility compliance (WCAG 2.1 AA)
+
+### Operational Metrics
+- [ ] System uptime >99.5%
+- [ ] Automated deployment success rate >95%
+- [ ] Mean time to recovery <15 minutes
+- [ ] Monitoring coverage >90%
+
 ### Maintainability
 - [ ] Complete API documentation
 - [ ] Add comprehensive logging
@@ -497,6 +741,34 @@ type Metrics struct {
 - [ ] Architecture review
 - [ ] Performance optimization
 - [ ] Security audit
+
+## 🎯 **QUICK WINS TO PRIORITIZE**
+
+### Week 1 Quick Wins (1-2 hours each)
+1. **Fix CORS configuration** - immediate security improvement
+2. **Add security headers** - easy security enhancement
+3. **Implement input sanitization** - prevent XSS attacks
+4. **Add rate limiting** - prevent abuse
+
+### Week 2 Quick Wins
+1. **Create health check endpoint** - operational visibility
+2. **Add request logging** - debugging support
+3. **Implement graceful shutdown** - reliability improvement
+4. **Create test fixtures** - testing foundation
+
+## 🚀 **IMPLEMENTATION TIPS**
+
+### Development Workflow
+1. **Branch Strategy**: Create feature branches for each TODO item
+2. **Code Reviews**: Require peer review for all security-related changes
+3. **Testing First**: Write tests before implementing fixes where possible
+4. **Incremental Deployment**: Deploy fixes in small batches
+
+### Validation Checklist
+- [ ] All security fixes tested with penetration testing tools
+- [ ] Performance impact measured before/after changes
+- [ ] Documentation updated with each change
+- [ ] Backward compatibility maintained where possible
 
 ---
 
