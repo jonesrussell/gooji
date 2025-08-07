@@ -122,13 +122,13 @@ func (s *service) ProcessUpload(ctx context.Context, file multipart.File, header
 	}
 
 	// Generate thumbnail asynchronously
-	go func() {
-		if err := s.GenerateThumbnail(context.Background(), videoPath); err != nil {
+	go func(ctx context.Context) {
+		if err := s.GenerateThumbnail(ctx, videoPath); err != nil {
 			s.logger.Error("Failed to generate thumbnail for %s: %v", videoPath, err)
 		} else {
 			s.logger.Info("Successfully generated thumbnail for: %s", videoPath)
 		}
-	}()
+	}(ctx)
 
 	s.logger.Info("Successfully processed video upload: %s", filename)
 	return videoMetadata, nil
@@ -180,7 +180,8 @@ func (s *service) GenerateThumbnail(ctx context.Context, videoPath string) error
 
 	// Extract filename and create thumbnail path
 	filename := filepath.Base(videoPath)
-	thumbnailPath := filepath.Join("storage/thumbnails", strings.TrimSuffix(filename, filepath.Ext(filename))+".jpg")
+	// Use a relative path that will be resolved relative to the current working directory
+	thumbnailPath := filepath.Join("storage", "thumbnails", strings.TrimSuffix(filename, filepath.Ext(filename))+".jpg")
 
 	// Generate thumbnail at 1 second mark
 	if err := s.processor.GenerateThumbnail(videoPath, thumbnailPath, 1.0); err != nil {

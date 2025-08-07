@@ -20,11 +20,11 @@ type Handler struct {
 	service   Service
 	templates map[string]*template.Template
 	logger    *logger.Logger
-	storage   config.Storage
+	storage   *config.Storage
 }
 
 // NewHandler creates a new video handler
-func NewHandler(processor *ffmpeg.Processor, storage config.Storage, log *logger.Logger) (*Handler, error) {
+func NewHandler(processor *ffmpeg.Processor, storage *config.Storage, log *logger.Logger) (*Handler, error) {
 	// Create storage directories
 	if err := createStorageDirectories(storage); err != nil {
 		return nil, fmt.Errorf("failed to create storage directories: %w", err)
@@ -269,10 +269,10 @@ func (h *Handler) ListVideos(w http.ResponseWriter, r *http.Request) {
 // Helper functions
 
 // createStorageDirectories creates all required storage directories
-func createStorageDirectories(storage config.Storage) error {
+func createStorageDirectories(storage *config.Storage) error {
 	dirs := []string{storage.Uploads, storage.Temp, storage.Logs, storage.Thumbnails, storage.Metadata}
 	for _, dir := range dirs {
-		if err := os.MkdirAll(dir, 0750); err != nil {
+		if err := os.MkdirAll(dir, 0o750); err != nil {
 			return fmt.Errorf("failed to create directory %s: %w", dir, err)
 		}
 	}
@@ -354,6 +354,7 @@ func (h *Handler) getHealthStatus() map[string]interface{} {
 
 // handleMethodNotAllowed handles HTTP method not allowed errors
 func (h *Handler) handleMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
+	h.logger.Error("Method not allowed: %s %s (remote: %s)", r.Method, r.URL.Path, r.RemoteAddr)
 	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }
 

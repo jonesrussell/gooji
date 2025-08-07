@@ -2,6 +2,7 @@ package errors
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -33,8 +34,8 @@ func (e *Error) Error() string {
 // WriteError writes an error response to the HTTP response writer
 func WriteError(w http.ResponseWriter, err error) {
 	var appErr *Error
-	if e, ok := err.(*Error); ok {
-		appErr = e
+	if errors.As(err, &appErr) {
+		// appErr is already set
 	} else {
 		appErr = New(http.StatusInternalServerError, "Internal server error", err)
 	}

@@ -17,12 +17,12 @@ import (
 
 // repository implements the Repository interface
 type repository struct {
-	storage config.Storage
+	storage *config.Storage
 	logger  *logger.Logger
 }
 
 // NewRepository creates a new video repository
-func NewRepository(storage config.Storage, logger *logger.Logger) Repository {
+func NewRepository(storage *config.Storage, logger *logger.Logger) Repository {
 	return &repository{
 		storage: storage,
 		logger:  logger,
@@ -32,7 +32,7 @@ func NewRepository(storage config.Storage, logger *logger.Logger) Repository {
 // SaveVideo saves a video file to storage
 func (r *repository) SaveVideo(ctx context.Context, file multipart.File, filename string) (string, error) {
 	// Ensure uploads directory exists
-	if err := os.MkdirAll(r.storage.Uploads, 0750); err != nil {
+	if err := os.MkdirAll(r.storage.Uploads, 0o750); err != nil {
 		return "", fmt.Errorf("failed to create uploads directory: %w", err)
 	}
 
@@ -45,7 +45,7 @@ func (r *repository) SaveVideo(ctx context.Context, file multipart.File, filenam
 	}
 
 	// Create destination file
-	dst, err := os.Create(videoPath)
+	dst, err := os.Create(videoPath) //nolint:gosec // Path validated above
 	if err != nil {
 		return "", fmt.Errorf("failed to create video file: %w", err)
 	}
@@ -75,7 +75,7 @@ func (r *repository) SaveVideo(ctx context.Context, file multipart.File, filenam
 // SaveMetadata saves video metadata to storage
 func (r *repository) SaveMetadata(ctx context.Context, metadata *VideoMetadata) error {
 	// Ensure metadata directory exists
-	if err := os.MkdirAll(r.storage.Metadata, 0750); err != nil {
+	if err := os.MkdirAll(r.storage.Metadata, 0o750); err != nil {
 		return fmt.Errorf("failed to create metadata directory: %w", err)
 	}
 
@@ -88,7 +88,7 @@ func (r *repository) SaveMetadata(ctx context.Context, metadata *VideoMetadata) 
 	}
 
 	// Create metadata file
-	file, err := os.Create(metadataPath)
+	file, err := os.Create(metadataPath) //nolint:gosec // Path validated above
 	if err != nil {
 		return fmt.Errorf("failed to create metadata file: %w", err)
 	}
@@ -123,7 +123,7 @@ func (r *repository) GetMetadata(ctx context.Context, id string) (*VideoMetadata
 	}
 
 	// Open metadata file
-	file, err := os.Open(metadataPath)
+	file, err := os.Open(metadataPath) //nolint:gosec // Path validated above
 	if err != nil {
 		return nil, fmt.Errorf("failed to open metadata file: %w", err)
 	}
@@ -141,7 +141,7 @@ func (r *repository) GetMetadata(ctx context.Context, id string) (*VideoMetadata
 // ListMetadata retrieves all video metadata
 func (r *repository) ListMetadata(ctx context.Context) ([]VideoMetadata, error) {
 	// Ensure metadata directory exists
-	if err := os.MkdirAll(r.storage.Metadata, 0750); err != nil {
+	if err := os.MkdirAll(r.storage.Metadata, 0o750); err != nil {
 		return nil, fmt.Errorf("failed to create metadata directory: %w", err)
 	}
 
@@ -151,35 +151,37 @@ func (r *repository) ListMetadata(ctx context.Context) ([]VideoMetadata, error) 
 		return nil, fmt.Errorf("failed to read metadata directory: %w", err)
 	}
 
-	var videos []VideoMetadata
+	videos := make([]VideoMetadata, 0, len(files))
 	for _, file := range files {
-		// Only process JSON files
-		if !file.IsDir() && strings.HasSuffix(file.Name(), ".json") {
-			metadataPath := filepath.Join(r.storage.Metadata, file.Name())
-
-			// Validate path is within allowed directory
-			if err := r.validatePath(metadataPath, r.storage.Metadata); err != nil {
-				r.logger.Error("Invalid metadata path found: %s", metadataPath)
-				continue
-			}
-
-			// Open and decode metadata file
-			metadataFile, err := os.Open(metadataPath)
-			if err != nil {
-				r.logger.Error("Failed to open metadata file %s: %v", metadataPath, err)
-				continue
-			}
-
-			var metadata VideoMetadata
-			if err := json.NewDecoder(metadataFile).Decode(&metadata); err != nil {
-				metadataFile.Close()
-				r.logger.Error("Failed to decode metadata file %s: %v", metadataPath, err)
-				continue
-			}
-			metadataFile.Close()
-
-			videos = append(videos, metadata)
+		// Skip directories and non-JSON files
+		if file.IsDir() || !strings.HasSuffix(file.Name(), ".json") {
+			continue
 		}
+
+		metadataPath := filepath.Join(r.storage.Metadata, file.Name())
+
+		// Validate path is within allowed directory
+		if err := r.validatePath(metadataPath, r.storage.Metadata); err != nil {
+			r.logger.Error("Invalid metadata path found: %s", metadataPath)
+			continue
+		}
+
+		// Open and decode metadata file
+		metadataFile, err := os.Open(metadataPath) //nolint:gosec // Path validated above
+		if err != nil {
+			r.logger.Error("Failed to open metadata file %s: %v", metadataPath, err)
+			continue
+		}
+
+		var metadata VideoMetadata
+		if err := json.NewDecoder(metadataFile).Decode(&metadata); err != nil {
+			metadataFile.Close()
+			r.logger.Error("Failed to decode metadata file %s: %v", metadataPath, err)
+			continue
+		}
+		metadataFile.Close()
+
+		videos = append(videos, metadata)
 	}
 
 	return videos, nil

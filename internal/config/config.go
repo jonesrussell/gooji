@@ -80,7 +80,20 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("invalid config path: %w", err)
 	}
 
-	file, err := os.Open(path)
+	// Additional security check: ensure path is absolute and no path traversal
+	if !filepath.IsAbs(path) {
+		return nil, fmt.Errorf("config path must be absolute: %s", path)
+	}
+	if strings.Contains(path, "..") {
+		return nil, fmt.Errorf("path traversal not allowed in config path: %s", path)
+	}
+
+	// Final security check: validate path is safe before opening
+	if err := validatePath(path); err != nil {
+		return nil, fmt.Errorf("config path validation failed: %w", err)
+	}
+
+	file, err := os.Open(path) //nolint:gosec // Path validated above
 	if err != nil {
 		return nil, fmt.Errorf("failed to open config file: %w", err)
 	}

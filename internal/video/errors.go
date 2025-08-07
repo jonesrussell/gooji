@@ -1,6 +1,7 @@
 package video
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -94,40 +95,36 @@ func NewUploadError(message string, err error) *VideoError {
 
 // IsValidationError checks if an error is a validation error
 func IsValidationError(err error) bool {
-	if err != nil && err.Error() != "" {
-		if videoErr, ok := err.(*VideoError); ok {
-			return videoErr.Type == ErrorTypeValidation
-		}
+	var videoErr *VideoError
+	if errors.As(err, &videoErr) {
+		return videoErr.Type == ErrorTypeValidation
 	}
 	return false
 }
 
 // IsNotFoundError checks if an error is a not found error
 func IsNotFoundError(err error) bool {
-	if err != nil && err.Error() != "" {
-		if videoErr, ok := err.(*VideoError); ok {
-			return videoErr.Type == ErrorTypeNotFound
-		}
+	var videoErr *VideoError
+	if errors.As(err, &videoErr) {
+		return videoErr.Type == ErrorTypeNotFound
 	}
 	return false
 }
 
 // IsSecurityError checks if an error is a security error
 func IsSecurityError(err error) bool {
-	if err != nil && err.Error() != "" {
-		if videoErr, ok := err.(*VideoError); ok {
-			return videoErr.Type == ErrorTypeSecurity
-		}
+	var videoErr *VideoError
+	if errors.As(err, &videoErr) {
+		return videoErr.Type == ErrorTypeSecurity
 	}
 	return false
 }
 
 // GetHTTPStatusCode returns the appropriate HTTP status code for an error
 func GetHTTPStatusCode(err error) int {
-	if err != nil && err.Error() != "" {
-		if videoErr, ok := err.(*VideoError); ok {
-			return videoErr.Code
-		}
+	var videoErr *VideoError
+	if errors.As(err, &videoErr) {
+		return videoErr.Code
 	}
 	return http.StatusInternalServerError
 }
