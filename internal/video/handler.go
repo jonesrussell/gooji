@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -18,64 +17,301 @@ import (
 
 // Handler manages video recording and processing
 type Handler struct {
-	processor *ffmpeg.Processor
-	storage   config.Storage
+	service   Service
 	templates map[string]*template.Template
 	logger    *logger.Logger
-}
-
-// VideoMetadata represents metadata for a recorded video
-type VideoMetadata struct {
-	ID          string    `json:"id"`
-	Filename    string    `json:"filename"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Duration    float64   `json:"duration"`
-	CreatedAt   time.Time `json:"created_at"`
-	Tags        []string  `json:"tags"`
+	storage   config.Storage
 }
 
 // NewHandler creates a new video handler
 func NewHandler(processor *ffmpeg.Processor, storage config.Storage, log *logger.Logger) (*Handler, error) {
 	// Create storage directories
+	if err := createStorageDirectories(storage); err != nil {
+		return nil, fmt.Errorf("failed to create storage directories: %w", err)
+	}
+
+	// Create secure processor with allowed directory restriction
+	secureProcessor := ffmpeg.NewProcessorWithSecurity(processor.FFmpegPath(), storage.Uploads)
+
+	// Create repository and service
+	repo := NewRepository(storage, log)
+	service := NewService(repo, secureProcessor, log)
+
+	// Parse templates
+	templates, err := parseTemplates()
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse templates: %w", err)
+	}
+
+	// Log template parsing success
+	log.Info("Templates parsed successfully")
+	for name := range templates {
+		log.Debug("Available template: %s", name)
+	}
+
+	return &Handler{
+		service:   service,
+		templates: templates,
+		logger:    log,
+		storage:   storage,
+	}, nil
+}
+
+// HandleHome serves the home page
+func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.handleMethodNotAllowed(w, r)
+		return
+	}
+
+	h.logger.Debug("Serving home page")
+	h.logger.Debug("Available templates: %v", len(h.templates))
+
+	if err := h.templates["home"].ExecuteTemplate(w, "base.html", map[string]interface{}{
+		"Page":         "home",
+		"IsRecordPage": false,
+	}); err != nil {
+		h.logger.Error("Template execution error: %v", err)
+		h.handleInternalError(w, r, err)
+		return
+	}
+}
+
+// HandleRecord serves the recording page
+func (h *Handler) HandleRecord(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.handleMethodNotAllowed(w, r)
+		return
+	}
+
+	h.logger.Debug("Serving record page")
+
+	if err := h.templates["record"].ExecuteTemplate(w, "base.html", map[string]interface{}{
+		"Page":         "record",
+		"IsRecordPage": true,
+	}); err != nil {
+		h.handleInternalError(w, r, err)
+		return
+	}
+}
+
+// HandleEdit serves the video editing page
+func (h *Handler) HandleEdit(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.handleMethodNotAllowed(w, r)
+		return
+	}
+
+	if err := h.templates["editor"].ExecuteTemplate(w, "editor.html", map[string]interface{}{
+		"Page":         "edit",
+		"IsRecordPage": false,
+	}); err != nil {
+		h.handleInternalError(w, r, err)
+		return
+	}
+}
+
+// HandleGallery serves the video gallery page
+func (h *Handler) HandleGallery(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.handleMethodNotAllowed(w, r)
+		return
+	}
+
+	if err := h.templates["gallery"].ExecuteTemplate(w, "gallery.html", map[string]interface{}{
+		"Page":         "gallery",
+		"IsRecordPage": false,
+	}); err != nil {
+		h.handleInternalError(w, r, err)
+		return
+	}
+}
+
+// HandleCameraTest serves the camera test page
+func (h *Handler) HandleCameraTest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.handleMethodNotAllowed(w, r)
+		return
+	}
+
+	h.logger.Debug("Serving camera test page")
+
+	if err := h.templates["camera-test"].ExecuteTemplate(w, "base.html", map[string]interface{}{
+		"Page":         "camera-test",
+		"IsRecordPage": false,
+	}); err != nil {
+		h.handleInternalError(w, r, err)
+		return
+	}
+}
+
+// HandleHealth provides system health information
+func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.handleMethodNotAllowed(w, r)
+		return
+	}
+
+	health := h.getHealthStatus()
+	h.writeJSONResponse(w, health)
+}
+
+// HandleVideos handles video-related API endpoints
+func (h *Handler) HandleVideos(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.ListVideos(w, r)
+	case http.MethodPost:
+		h.HandleUpload(w, r)
+	default:
+		h.handleMethodNotAllowed(w, r)
+	}
+}
+
+// HandleVideo handles individual video API endpoints
+func (h *Handler) HandleVideo(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.GetVideo(w, r)
+	default:
+		h.handleMethodNotAllowed(w, r)
+	}
+}
+
+// HandleUpload processes an uploaded video file
+func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
+	// Parse multipart form
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		h.handleValidationError(w, r, "Failed to parse form", err)
+		return
+	}
+
+	// Get video file
+	file, header, err := r.FormFile("video")
+	if err != nil {
+		h.handleValidationError(w, r, "Failed to get video file", err)
+		return
+	}
+	defer file.Close()
+
+	// Create upload metadata
+	metadata := &UploadMetadata{
+		Title:       r.FormValue("title"),
+		Description: r.FormValue("description"),
+		Tags:        []string{"ojibwe", "language", "culture"}, // Default tags
+	}
+
+	// Process upload through service
+	videoMetadata, err := h.service.ProcessUpload(r.Context(), file, header, metadata)
+	if err != nil {
+		h.handleServiceError(w, r, err)
+		return
+	}
+
+	// Return success response
+	response := map[string]string{
+		"id":       videoMetadata.ID,
+		"filename": videoMetadata.Filename,
+	}
+	h.writeJSONResponse(w, response)
+}
+
+// GetVideo returns a video file
+func (h *Handler) GetVideo(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		h.handleValidationError(w, r, "Missing video ID", nil)
+		return
+	}
+
+	videoPath := filepath.Join(h.storage.Uploads, id)
+	if _, err := os.Stat(videoPath); os.IsNotExist(err) {
+		h.handleNotFoundError(w, r, "Video not found", err)
+		return
+	}
+
+	http.ServeFile(w, r, videoPath)
+}
+
+// GetThumbnail returns a video thumbnail
+func (h *Handler) GetThumbnail(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.handleMethodNotAllowed(w, r)
+		return
+	}
+
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		h.handleValidationError(w, r, "Missing video ID", nil)
+		return
+	}
+
+	thumbnailPath := filepath.Join(h.storage.Thumbnails, id+".jpg")
+	if _, err := os.Stat(thumbnailPath); os.IsNotExist(err) {
+		h.handleNotFoundError(w, r, "Thumbnail not found", err)
+		return
+	}
+
+	http.ServeFile(w, r, thumbnailPath)
+}
+
+// ListVideos returns a list of available videos
+func (h *Handler) ListVideos(w http.ResponseWriter, r *http.Request) {
+	videos, err := h.service.ListVideos(r.Context())
+	if err != nil {
+		h.handleServiceError(w, r, err)
+		return
+	}
+
+	h.writeJSONResponse(w, videos)
+}
+
+// Helper functions
+
+// createStorageDirectories creates all required storage directories
+func createStorageDirectories(storage config.Storage) error {
 	dirs := []string{storage.Uploads, storage.Temp, storage.Logs, storage.Thumbnails, storage.Metadata}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0755); err != nil {
-			return nil, fmt.Errorf("failed to create directory %s: %v", dir, err)
+			return fmt.Errorf("failed to create directory %s: %w", dir, err)
 		}
 	}
+	return nil
+}
 
+// parseTemplates parses all HTML templates
+func parseTemplates() (map[string]*template.Template, error) {
 	// Parse base template first
 	baseTemplate, err := template.ParseFiles("web/templates/base.html")
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse base template: %v", err)
+		return nil, fmt.Errorf("failed to parse base template: %w", err)
 	}
 
 	// Parse individual page templates that use base template
 	homeTemplate, err := template.Must(baseTemplate.Clone()).ParseFiles("web/templates/home.html")
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse home template: %v", err)
+		return nil, fmt.Errorf("failed to parse home template: %w", err)
 	}
 
 	recordTemplate, err := template.Must(baseTemplate.Clone()).ParseFiles("web/templates/record.html")
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse record template: %v", err)
+		return nil, fmt.Errorf("failed to parse record template: %w", err)
 	}
 
 	cameraTestTemplate, err := template.Must(baseTemplate.Clone()).ParseFiles("web/templates/camera-test.html")
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse camera test template: %v", err)
+		return nil, fmt.Errorf("failed to parse camera test template: %w", err)
 	}
 
 	// Parse standalone templates
 	galleryTemplate, err := template.ParseFiles("web/templates/gallery.html")
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse gallery template: %v", err)
+		return nil, fmt.Errorf("failed to parse gallery template: %w", err)
 	}
 
 	editorTemplate, err := template.ParseFiles("web/templates/editor.html")
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse editor template: %v", err)
+		return nil, fmt.Errorf("failed to parse editor template: %w", err)
 	}
 
 	// Create a template map for easy access
@@ -87,118 +323,11 @@ func NewHandler(processor *ffmpeg.Processor, storage config.Storage, log *logger
 		"camera-test": cameraTestTemplate,
 	}
 
-	// Debug: Log template parsing success
-	log.Info("Templates parsed successfully")
-	for name := range templates {
-		log.Debug("Available template: %s", name)
-	}
-
-	return &Handler{
-		processor: processor,
-		storage:   storage,
-		templates: templates,
-		logger:    log,
-	}, nil
+	return templates, nil
 }
 
-// HandleHome serves the home page
-func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Debug logging
-	h.logger.Debug("Serving home page")
-
-	// Check if templates are loaded correctly
-	h.logger.Debug("Available templates: %v", len(h.templates))
-
-	if err := h.templates["home"].ExecuteTemplate(w, "base.html", map[string]interface{}{
-		"Page":         "home",
-		"IsRecordPage": false,
-	}); err != nil {
-		h.logger.Error("Template execution error: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-}
-
-// HandleRecord serves the recording page
-func (h *Handler) HandleRecord(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Debug logging
-	h.logger.Debug("Serving record page")
-
-	if err := h.templates["record"].ExecuteTemplate(w, "base.html", map[string]interface{}{
-		"Page":         "record",
-		"IsRecordPage": true,
-	}); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-}
-
-// HandleEdit serves the video editing page
-func (h *Handler) HandleEdit(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	if err := h.templates["editor"].ExecuteTemplate(w, "editor.html", map[string]interface{}{
-		"Page":         "edit",
-		"IsRecordPage": false,
-	}); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-}
-
-// HandleGallery serves the video gallery page
-func (h *Handler) HandleGallery(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	if err := h.templates["gallery"].ExecuteTemplate(w, "gallery.html", map[string]interface{}{
-		"Page":         "gallery",
-		"IsRecordPage": false,
-	}); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-}
-
-// HandleCameraTest serves the camera test page
-func (h *Handler) HandleCameraTest(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Debug logging
-	h.logger.Debug("Serving camera test page")
-
-	if err := h.templates["camera-test"].ExecuteTemplate(w, "base.html", map[string]interface{}{
-		"Page":         "camera-test",
-		"IsRecordPage": false,
-	}); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-}
-
-// HandleHealth provides system health information
-func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
+// getHealthStatus returns the current health status
+func (h *Handler) getHealthStatus() map[string]interface{} {
 	// Test FFmpeg availability
 	ffmpegWorking := false
 	if _, err := exec.LookPath("ffmpeg"); err == nil {
@@ -211,7 +340,7 @@ func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
 		videoDirAccessible = true
 	}
 
-	health := map[string]interface{}{
+	return map[string]interface{}{
 		"status":    "healthy",
 		"timestamp": time.Now(),
 		"checks": map[string]bool{
@@ -219,184 +348,51 @@ func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
 			"video_dir": videoDirAccessible,
 		},
 	}
+}
 
+// Error handling helpers
+
+// handleMethodNotAllowed handles HTTP method not allowed errors
+func (h *Handler) handleMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+}
+
+// handleValidationError handles validation errors
+func (h *Handler) handleValidationError(w http.ResponseWriter, r *http.Request, message string, err error) {
+	h.logger.Error("Validation error: %s - %v (method: %s, path: %s, remote: %s)",
+		message, err, r.Method, r.URL.Path, r.RemoteAddr)
+	http.Error(w, message, http.StatusBadRequest)
+}
+
+// handleNotFoundError handles not found errors
+func (h *Handler) handleNotFoundError(w http.ResponseWriter, r *http.Request, message string, err error) {
+	h.logger.Error("Not found error: %s - %v (method: %s, path: %s, remote: %s)",
+		message, err, r.Method, r.URL.Path, r.RemoteAddr)
+	http.Error(w, message, http.StatusNotFound)
+}
+
+// handleInternalError handles internal server errors
+func (h *Handler) handleInternalError(w http.ResponseWriter, r *http.Request, err error) {
+	h.logger.Error("Internal server error: %v (method: %s, path: %s, remote: %s)",
+		err, r.Method, r.URL.Path, r.RemoteAddr)
+	http.Error(w, "Internal server error", http.StatusInternalServerError)
+}
+
+// handleServiceError handles service layer errors
+func (h *Handler) handleServiceError(w http.ResponseWriter, r *http.Request, err error) {
+	h.logger.Error("Service error: %v (method: %s, path: %s, remote: %s)",
+		err, r.Method, r.URL.Path, r.RemoteAddr)
+
+	// Use structured error handling if available
+	statusCode := GetHTTPStatusCode(err)
+	http.Error(w, "Service error", statusCode)
+}
+
+// writeJSONResponse writes a JSON response
+func (h *Handler) writeJSONResponse(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(health)
-}
-
-// HandleVideos handles video-related API endpoints
-func (h *Handler) HandleVideos(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.ListVideos(w, r)
-	case http.MethodPost:
-		h.HandleUpload(w, r)
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		h.logger.Error("Failed to encode JSON response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
-}
-
-// HandleVideo handles individual video API endpoints
-func (h *Handler) HandleVideo(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.GetVideo(w, r)
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	}
-}
-
-// HandleUpload processes an uploaded video file
-func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
-	// Parse multipart form
-	if err := r.ParseMultipartForm(32 << 20); err != nil {
-		http.Error(w, "Failed to parse form", http.StatusBadRequest)
-		return
-	}
-
-	// Get video file
-	file, header, err := r.FormFile("video")
-	if err != nil {
-		http.Error(w, "Failed to get video file", http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
-
-	// Create unique filename
-	filename := fmt.Sprintf("%d_%s", time.Now().Unix(), header.Filename)
-	videoPath := filepath.Join(h.storage.Uploads, filename)
-
-	// Save file
-	dst, err := os.Create(videoPath)
-	if err != nil {
-		http.Error(w, "Failed to save video", http.StatusInternalServerError)
-		return
-	}
-	defer dst.Close()
-
-	if _, err := io.Copy(dst, file); err != nil {
-		http.Error(w, "Failed to save video", http.StatusInternalServerError)
-		return
-	}
-
-	// Get video metadata
-	info, err := h.processor.GetVideoInfo(videoPath)
-	if err != nil {
-		// Log the specific error for debugging
-		h.logger.Error("FFmpeg error for file %s: %v", videoPath, err)
-		http.Error(w, fmt.Sprintf("Failed to process video: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	// Create metadata
-	metadata := VideoMetadata{
-		ID:          filename,
-		Filename:    filename,
-		Title:       r.FormValue("title"),
-		Description: r.FormValue("description"),
-		Duration:    info.Duration,
-		CreatedAt:   time.Now(),
-		Tags:        []string{"ojibwe", "language", "culture"},
-	}
-
-	// Save metadata
-	metadataPath := filepath.Join(h.storage.Metadata, filename+".json")
-	metadataFile, err := os.Create(metadataPath)
-	if err != nil {
-		http.Error(w, "Failed to save metadata", http.StatusInternalServerError)
-		return
-	}
-	defer metadataFile.Close()
-
-	if err := json.NewEncoder(metadataFile).Encode(metadata); err != nil {
-		http.Error(w, "Failed to save metadata", http.StatusInternalServerError)
-		return
-	}
-
-	// Generate thumbnail
-	thumbnailPath := filepath.Join(h.storage.Thumbnails, filename+".jpg")
-	if err := h.processor.GenerateThumbnail(videoPath, thumbnailPath, 1); err != nil {
-		// Log error but don't fail the request
-		h.logger.Error("Failed to generate thumbnail for %s: %v", videoPath, err)
-	} else {
-		h.logger.Info("Successfully generated thumbnail: %s", thumbnailPath)
-	}
-
-	// Return success response
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"id":       metadata.ID,
-		"filename": metadata.Filename,
-	})
-}
-
-// GetVideo returns a video file
-func (h *Handler) GetVideo(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		http.Error(w, "Missing video ID", http.StatusBadRequest)
-		return
-	}
-
-	videoPath := filepath.Join(h.storage.Uploads, id)
-	if _, err := os.Stat(videoPath); os.IsNotExist(err) {
-		http.Error(w, "Video not found", http.StatusNotFound)
-		return
-	}
-
-	http.ServeFile(w, r, videoPath)
-}
-
-// GetThumbnail returns a video thumbnail
-func (h *Handler) GetThumbnail(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		http.Error(w, "Missing video ID", http.StatusBadRequest)
-		return
-	}
-
-	thumbnailPath := filepath.Join(h.storage.Thumbnails, id+".jpg")
-	if _, err := os.Stat(thumbnailPath); os.IsNotExist(err) {
-		http.Error(w, "Thumbnail not found", http.StatusNotFound)
-		return
-	}
-
-	http.ServeFile(w, r, thumbnailPath)
-}
-
-// ListVideos returns a list of available videos
-func (h *Handler) ListVideos(w http.ResponseWriter, r *http.Request) {
-	files, err := os.ReadDir(h.storage.Metadata)
-	if err != nil {
-		http.Error(w, "Failed to list videos", http.StatusInternalServerError)
-		return
-	}
-
-	var videos []VideoMetadata
-	for _, file := range files {
-		if filepath.Ext(file.Name()) == ".json" {
-			metadataPath := filepath.Join(h.storage.Metadata, file.Name())
-			metadataFile, err := os.Open(metadataPath)
-			if err != nil {
-				continue
-			}
-
-			var metadata VideoMetadata
-			if err := json.NewDecoder(metadataFile).Decode(&metadata); err != nil {
-				metadataFile.Close()
-				continue
-			}
-			metadataFile.Close()
-
-			videos = append(videos, metadata)
-		}
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(videos)
 }
