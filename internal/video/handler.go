@@ -354,6 +354,7 @@ func (h *Handler) getHealthStatus() map[string]interface{} {
 
 // handleMethodNotAllowed handles HTTP method not allowed errors
 func (h *Handler) handleMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
+	h.logger.Error("Method not allowed: %s %s (remote: %s)", r.Method, r.URL.Path, r.RemoteAddr)
 	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }
 
