@@ -1,0 +1,133 @@
+# golangci-lint configuration - compatible with current versions
+# Note: v2 format is still in development, using current stable format
+
+run:
+  go: "1.24"
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+
+linters:
+  enable:
+    # Essential security and correctness
+    - gosec
+    - errcheck
+    - govet
+    - ineffassign
+    - unused
+    - bodyclose
+    - contextcheck
+    - errorlint
+    
+    # Code quality
+    - gocritic
+    - goconst
+    - cyclop
+    - funlen
+    - gocyclo
+    - dupl
+    
+    # Style and consistency  
+    - misspell
+    - whitespace
+    - prealloc
+    - unconvert
+    - unparam
+    
+    # Testing
+    - testifylint
+    - testpackage
+    - thelper
+    - paralleltest
+    
+    # Performance
+    - rowserrcheck
+    - sqlclosecheck
+    
+    # Modern Go practices
+    - nilerr
+    - nilnil
+    - reassign
+    
+    # Formatting (until formatters section is available)
+    - gofmt
+    - goimports
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  gosec:
+    severity: medium
+    confidence: medium
+    excludes:
+      - G307  # Defer closing file without error check
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+    disabled-checks:
+      - ifElseChain
+      - singleCaseSwitch
+      - commentFormatting
+
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+
+  cyclop:
+    max-complexity: 15
+
+  funlen:
+    lines: 80
+    statements: 60
+
+  gocyclo:
+    min-complexity: 15
+
+  misspell:
+    locale: US
+    
+  prealloc:
+    simple: true
+    range-loops: true
+
+  testifylint:
+    enable-all: true
+
+  paralleltest:
+    ignore-missing: true
+
+issues:
+  exclude-rules:
+    # Exclude certain linters for test files
+    - path: _test\.go
+      linters:
+        - funlen
+        - gocyclo
+        - cyclop
+        - dupl
+
+    # Exclude generated files
+    - path: _templ\.go
+      linters:
+        - gocritic
+        - unused
+        
+    # Allow longer main functions
+    - path: main\.go
+      linters:
+        - funlen
+        - gocyclo
+        - cyclop
+
+  # Use exclude-use-default: false to disable default exclusions
+  # Then add back only the ones you want
+  exclude-use-default: false
+  exclude:
+    # Re-add essential exclusions manually
+    - "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*print.*|os\\.(Un)?Setenv). is not checked"
+    - "exported (type|method|function) (.+) should have comment or be unexported"
+    - "ST1000: at least one file in a package should have a package comment"
