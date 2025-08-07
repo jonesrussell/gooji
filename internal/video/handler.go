@@ -272,7 +272,7 @@ func (h *Handler) ListVideos(w http.ResponseWriter, r *http.Request) {
 func createStorageDirectories(storage config.Storage) error {
 	dirs := []string{storage.Uploads, storage.Temp, storage.Logs, storage.Thumbnails, storage.Metadata}
 	for _, dir := range dirs {
-		if err := os.MkdirAll(dir, 0750); err != nil {
+		if err := os.MkdirAll(dir, 0o750); err != nil {
 			return fmt.Errorf("failed to create directory %s: %w", dir, err)
 		}
 	}

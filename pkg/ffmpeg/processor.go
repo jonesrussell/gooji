@@ -374,5 +374,5 @@ func (p *Processor) ValidateVideo(inputPath string) error {
 
 // EnsureDirectory ensures the output directory exists
 func (p *Processor) EnsureDirectory(path string) error {
-	return os.MkdirAll(filepath.Dir(path), 0750)
+	return os.MkdirAll(filepath.Dir(path), 0o750)
 }

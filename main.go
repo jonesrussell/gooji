@@ -45,7 +45,9 @@ func main() {
 	// Create video handler
 	handler, err := video.NewHandler(processor, cfg.Storage, log)
 	if err != nil {
-		log.Fatal("Failed to create video handler: %v", err)
+		log.Error("Failed to create video handler: %v", err)
+		log.Close()
+		os.Exit(1)
 	}
 
 	// Create router
@@ -79,7 +81,8 @@ func main() {
 	go func() {
 		log.Info("Starting server on port %d", cfg.Server.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal("Failed to start server: %v", err)
+			log.Error("Failed to start server: %v", err)
+			os.Exit(1)
 		}
 	}()
 

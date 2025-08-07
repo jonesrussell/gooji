@@ -82,6 +82,14 @@ func (r *Recorder) UploadVideo(videoPath, title, description string) error {
 	writer := multipart.NewWriter(body)
 
 	// Add video file
+	// Additional security check: ensure path is absolute and no path traversal
+	if !filepath.IsAbs(videoPath) {
+		return fmt.Errorf("video path must be absolute: %s", videoPath)
+	}
+	if strings.Contains(videoPath, "..") {
+		return fmt.Errorf("path traversal not allowed in video path: %s", videoPath)
+	}
+
 	file, err := os.Open(videoPath)
 	if err != nil {
 		return fmt.Errorf("failed to open video file: %w", err)
