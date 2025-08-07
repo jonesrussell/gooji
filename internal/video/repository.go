@@ -17,12 +17,12 @@ import (
 
 // repository implements the Repository interface
 type repository struct {
-	storage config.Storage
+	storage *config.Storage
 	logger  *logger.Logger
 }
 
 // NewRepository creates a new video repository
-func NewRepository(storage config.Storage, logger *logger.Logger) Repository {
+func NewRepository(storage *config.Storage, logger *logger.Logger) Repository {
 	return &repository{
 		storage: storage,
 		logger:  logger,
@@ -45,7 +45,7 @@ func (r *repository) SaveVideo(ctx context.Context, file multipart.File, filenam
 	}
 
 	// Create destination file
-	dst, err := os.Create(videoPath)
+	dst, err := os.Create(videoPath) //nolint:gosec // Path validated above
 	if err != nil {
 		return "", fmt.Errorf("failed to create video file: %w", err)
 	}
@@ -88,7 +88,7 @@ func (r *repository) SaveMetadata(ctx context.Context, metadata *VideoMetadata) 
 	}
 
 	// Create metadata file
-	file, err := os.Create(metadataPath)
+	file, err := os.Create(metadataPath) //nolint:gosec // Path validated above
 	if err != nil {
 		return fmt.Errorf("failed to create metadata file: %w", err)
 	}
@@ -123,7 +123,7 @@ func (r *repository) GetMetadata(ctx context.Context, id string) (*VideoMetadata
 	}
 
 	// Open metadata file
-	file, err := os.Open(metadataPath)
+	file, err := os.Open(metadataPath) //nolint:gosec // Path validated above
 	if err != nil {
 		return nil, fmt.Errorf("failed to open metadata file: %w", err)
 	}

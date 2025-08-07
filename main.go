@@ -43,7 +43,7 @@ func main() {
 	processor := ffmpeg.NewProcessor(cfg.FFmpeg.Path)
 
 	// Create video handler
-	handler, err := video.NewHandler(processor, cfg.Storage, log)
+	handler, err := video.NewHandler(processor, &cfg.Storage, log)
 	if err != nil {
 		log.Error("Failed to create video handler: %v", err)
 		log.Close()
