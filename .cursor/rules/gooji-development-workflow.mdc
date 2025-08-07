@@ -1,0 +1,51 @@
+# Gooji Development Workflow
+
+## Build and Run Commands
+- **Start application**: `task run` (preferred over `go run main.go`)
+- **Development with live reload**: `task dev` (uses air for hot reloading)
+- **Build binary**: `go build -o bin/gooji main.go`
+- **Run tests**: `go test ./...`
+
+## Development Tools
+- **Task runner**: [Taskfile.yml](mdc:Taskfile.yml) defines all build tasks
+- **Live reload**: [.air.toml](mdc:.air.toml) configures air for development
+- **Dependencies**: Managed via [go.mod](mdc:go.mod)
+
+## Project Dependencies
+- **FFmpeg**: Required for video processing (see [pkg/ffmpeg/](mdc:pkg/ffmpeg/))
+- **Go modules**: All dependencies in [go.mod](mdc:go.mod)
+- **Static assets**: Served from `web/static/` directory
+
+## Code Organization
+- **Internal packages**: `internal/` - application-specific code
+- **External packages**: `pkg/` - reusable utilities
+- **Web assets**: `web/` - templates and static files
+- **Configuration**: `config/` - JSON configuration files
+
+## Key Development Files
+- [main.go](mdc:main.go) - Application entry point
+- [internal/video/handler.go](mdc:internal/video/handler.go) - Main HTTP handlers
+- [TODO.md](mdc:TODO.md) - Technical debt and roadmap
+- [DEVELOPMENT.md](mdc:DEVELOPMENT.md) - Development setup guide
+
+## Template Development
+- Templates in `web/templates/` directory
+- Base template system: [web/templates/base.html](mdc:web/templates/base.html) + content blocks
+- Standalone templates: Complete HTML files
+- Template parsing handled in [internal/video/handler.go](mdc:internal/video/handler.go)
+
+## Security Considerations
+- File upload validation in [internal/video/handler.go](mdc:internal/video/handler.go)
+- CORS configuration in middleware
+- Input sanitization required for user data
+- See [TODO.md](mdc:TODO.md) for security roadmap
+
+## Testing Strategy
+- Unit tests for critical paths
+- Integration tests for video processing
+- Template rendering tests
+- API endpoint testing
+description:
+globs:
+alwaysApply: false
+---

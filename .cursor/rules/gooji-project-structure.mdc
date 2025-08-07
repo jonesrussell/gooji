@@ -1,0 +1,50 @@
+# Gooji Project Structure Guide
+
+## Project Overview
+Gooji is a Go web application for Ojibwe language and culture video kiosk. The main entry point is [main.go](mdc:main.go), which sets up the server and routes.
+
+## Key Directories and Files
+
+### Core Application
+- [main.go](mdc:main.go) - Application entry point, server setup, and route configuration
+- [go.mod](mdc:go.mod) - Go module dependencies
+- [Taskfile.yml](mdc:Taskfile.yml) - Build and development tasks (use `task run` to start the app)
+
+### Internal Packages
+- `internal/video/` - Video processing and HTTP handlers
+  - [internal/video/handler.go](mdc:internal/video/handler.go) - Main HTTP handlers for video operations
+- `internal/config/` - Configuration management
+- `internal/logger/` - Logging functionality
+- `internal/middleware/` - HTTP middleware components
+
+### Web Assets
+- `web/templates/` - HTML templates
+  - [web/templates/base.html](mdc:web/templates/base.html) - Base template with common layout
+  - [web/templates/home.html](mdc:web/templates/home.html) - Home page content
+  - [web/templates/record.html](mdc:web/templates/record.html) - Video recording page
+  - [web/templates/gallery.html](mdc:web/templates/gallery.html) - Video gallery (standalone template)
+  - [web/templates/camera-test.html](mdc:web/templates/camera-test.html) - Camera testing page
+- `web/static/` - Static assets (CSS, JS, images)
+
+### External Packages
+- `pkg/ffmpeg/` - FFmpeg video processing utilities
+
+### Configuration
+- `config/` - Configuration files
+- [.air.toml](mdc:.air.toml) - Live reload configuration for development
+
+### Documentation
+- [README.md](mdc:README.md) - Project overview
+- [TODO.md](mdc:TODO.md) - Technical debt and roadmap
+- [DEVELOPMENT.md](mdc:DEVELOPMENT.md) - Development setup guide
+
+## Template System Architecture
+The application uses a mixed template system:
+- **Base Template System**: `base.html` + content blocks (home, record, camera-test)
+- **Standalone Templates**: Complete HTML files (gallery, editor)
+
+Template parsing is handled in [internal/video/handler.go](mdc:internal/video/handler.go) with separate template instances for each page to avoid conflicts.
+description:
+globs:
+alwaysApply: false
+---

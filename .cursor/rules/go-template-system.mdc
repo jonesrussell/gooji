@@ -1,0 +1,45 @@
+# Go Template System Guidelines
+
+## Template Architecture
+The Gooji project uses a mixed template system that must be handled carefully to avoid parsing conflicts.
+
+### Template Types
+1. **Base Template System**: Uses [web/templates/base.html](mdc:web/templates/base.html) with content blocks
+   - Templates: [web/templates/home.html](mdc:web/templates/home.html), [web/templates/record.html](mdc:web/templates/record.html), [web/templates/camera-test.html](mdc:web/templates/camera-test.html)
+   - Structure: `{{define "content"}}...{{end}}`
+
+2. **Standalone Templates**: Complete HTML files
+   - Templates: [web/templates/gallery.html](mdc:web/templates/gallery.html), [web/templates/editor.html](mdc:web/templates/editor.html)
+   - Structure: Complete HTML document
+
+### Template Parsing Rules
+- **NEVER** parse all templates together with `template.ParseFiles()` - this causes content block conflicts
+- Use separate template instances for each page type
+- Base templates: Clone base template and parse individual content files
+- Standalone templates: Parse as complete files
+
+### Implementation Pattern
+```go
+// CORRECT: Separate template instances
+baseTemplate, _ := template.ParseFiles("web/templates/base.html")
+homeTemplate, _ := template.Must(baseTemplate.Clone()).ParseFiles("web/templates/home.html")
+galleryTemplate, _ := template.ParseFiles("web/templates/gallery.html")
+
+// WRONG: Single template with all files (causes conflicts)
+templates, _ := template.ParseFiles("base.html", "home.html", "camera-test.html")
+```
+
+### Template Execution
+- Base templates: Execute with `"base.html"` template name
+- Standalone templates: Execute with their own template name (e.g., `"gallery.html"`)
+
+### Adding New Templates
+1. Determine if it should use base template or be standalone
+2. If base template: Create content block in new file
+3. If standalone: Create complete HTML file
+4. Update [internal/video/handler.go](mdc:internal/video/handler.go) parsing logic
+5. Add to template map with appropriate key
+description:
+globs:
+alwaysApply: false
+---

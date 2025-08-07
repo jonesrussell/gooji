@@ -1,0 +1,99 @@
+# Gooji Security Guidelines
+
+## Critical Security Issues (From [TODO.md](mdc:TODO.md))
+
+### 🔴 **MUST FIX IMMEDIATELY**
+
+#### 1. Command Injection Risk
+- **Location**: [pkg/ffmpeg/processor.go](mdc:pkg/ffmpeg/processor.go)
+- **Issue**: Direct use of user inputs in `exec.Command` without sanitization
+- **Fix Required**: Validate and sanitize all file paths before passing to FFmpeg
+
+#### 2. File Upload Security
+- **Location**: [internal/video/handler.go](mdc:internal/video/handler.go) - `HandleUpload()`
+- **Issues**: 
+  - No MIME type validation
+  - No file size limits
+  - User-controlled filenames
+- **Fix Required**: Implement proper validation and use UUIDs for filenames
+
+#### 3. CORS Misconfiguration
+- **Location**: `internal/middleware/middleware.go`
+- **Issue**: `Access-Control-Allow-Origin: "*"` allows any domain
+- **Fix Required**: Configure specific allowed origins
+
+#### 4. Input Validation
+- **Location**: [internal/video/handler.go](mdc:internal/video/handler.go)
+- **Issue**: Title, description, tags not validated for XSS/injection
+- **Fix Required**: Implement HTML sanitization and length limits
+
+## Security Best Practices
+
+### Input Validation
+```go
+// ALWAYS validate and sanitize user inputs
+import "html"
+
+func sanitizeInput(input string) string {
+    return html.EscapeString(strings.TrimSpace(input))
+}
+
+// Validate file uploads
+func validateUpload(file multipart.File, header *multipart.FileHeader) error {
+    // Check file size
+    // Validate MIME type
+    // Check file extension
+    // Scan for malicious content
+}
+```
+
+### File Path Security
+```go
+// NEVER use user input directly in file paths
+// Use UUIDs for filenames
+import "github.com/google/uuid"
+
+filename := uuid.New().String() + filepath.Ext(originalName)
+```
+
+### Command Execution
+```go
+// ALWAYS validate paths before executing commands
+func (p *Processor) sanitizePath(path string) (string, error) {
+    // Validate path is within allowed directory
+    // Check for path traversal attempts
+    // Return sanitized path
+}
+```
+
+### Template Security
+- Use `html/template` (already implemented) for automatic HTML escaping
+- Validate all template data before rendering
+- Never render user input directly without sanitization
+
+## Security Headers
+Implement security headers in middleware:
+- Content Security Policy (CSP)
+- X-Content-Type-Options: nosniff
+- X-Frame-Options: DENY
+- X-XSS-Protection: 1; mode=block
+
+## Rate Limiting
+Implement rate limiting for upload endpoints to prevent abuse:
+```go
+import "golang.org/x/time/rate"
+
+func RateLimitMiddleware(r rate.Limit, b int) Middleware {
+    // Implementation for rate limiting
+}
+```
+
+## Testing Security
+- Test all input validation
+- Test file upload security
+- Test command injection prevention
+- Test XSS prevention in templates
+description:
+globs:
+alwaysApply: false
+---
