@@ -20,7 +20,7 @@ import (
 type Handler struct {
 	processor *ffmpeg.Processor
 	storage   config.Storage
-	templates *template.Template
+	templates map[string]*template.Template
 	logger    *logger.Logger
 }
 
@@ -45,21 +45,53 @@ func NewHandler(processor *ffmpeg.Processor, storage config.Storage, log *logger
 		}
 	}
 
-	// Parse templates
-	templates, err := template.ParseFiles(
-		"web/templates/base.html",
-		"web/templates/home.html",
-		"web/templates/record.html",
-		"web/templates/gallery.html",
-		"web/templates/camera-test.html",
-	)
+	// Parse base template first
+	baseTemplate, err := template.ParseFiles("web/templates/base.html")
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse templates: %v", err)
+		return nil, fmt.Errorf("failed to parse base template: %v", err)
+	}
+
+	// Parse individual page templates that use base template
+	homeTemplate, err := template.Must(baseTemplate.Clone()).ParseFiles("web/templates/home.html")
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse home template: %v", err)
+	}
+
+	recordTemplate, err := template.Must(baseTemplate.Clone()).ParseFiles("web/templates/record.html")
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse record template: %v", err)
+	}
+
+	cameraTestTemplate, err := template.Must(baseTemplate.Clone()).ParseFiles("web/templates/camera-test.html")
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse camera test template: %v", err)
+	}
+
+	// Parse standalone templates
+	galleryTemplate, err := template.ParseFiles("web/templates/gallery.html")
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse gallery template: %v", err)
+	}
+
+	editorTemplate, err := template.ParseFiles("web/templates/editor.html")
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse editor template: %v", err)
+	}
+
+	// Create a template map for easy access
+	templates := map[string]*template.Template{
+		"home":        homeTemplate,
+		"record":      recordTemplate,
+		"gallery":     galleryTemplate,
+		"editor":      editorTemplate,
+		"camera-test": cameraTestTemplate,
 	}
 
 	// Debug: Log template parsing success
 	log.Info("Templates parsed successfully")
-	log.Debug("Available templates: %s", templates.DefinedTemplates())
+	for name := range templates {
+		log.Debug("Available template: %s", name)
+	}
 
 	return &Handler{
 		processor: processor,
@@ -80,9 +112,9 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("Serving home page")
 
 	// Check if templates are loaded correctly
-	h.logger.Debug("Available templates: %v", h.templates.DefinedTemplates())
+	h.logger.Debug("Available templates: %v", len(h.templates))
 
-	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
+	if err := h.templates["home"].ExecuteTemplate(w, "base.html", map[string]interface{}{
 		"Page":         "home",
 		"IsRecordPage": false,
 	}); err != nil {
@@ -102,7 +134,7 @@ func (h *Handler) HandleRecord(w http.ResponseWriter, r *http.Request) {
 	// Debug logging
 	h.logger.Debug("Serving record page")
 
-	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
+	if err := h.templates["record"].ExecuteTemplate(w, "base.html", map[string]interface{}{
 		"Page":         "record",
 		"IsRecordPage": true,
 	}); err != nil {
@@ -117,7 +149,7 @@ func (h *Handler) HandleEdit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
+	if err := h.templates["editor"].ExecuteTemplate(w, "editor.html", map[string]interface{}{
 		"Page":         "edit",
 		"IsRecordPage": false,
 	}); err != nil {
@@ -132,7 +164,7 @@ func (h *Handler) HandleGallery(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
+	if err := h.templates["gallery"].ExecuteTemplate(w, "gallery.html", map[string]interface{}{
 		"Page":         "gallery",
 		"IsRecordPage": false,
 	}); err != nil {
@@ -151,7 +183,7 @@ func (h *Handler) HandleCameraTest(w http.ResponseWriter, r *http.Request) {
 	// Debug logging
 	h.logger.Debug("Serving camera test page")
 
-	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
+	if err := h.templates["camera-test"].ExecuteTemplate(w, "base.html", map[string]interface{}{
 		"Page":         "camera-test",
 		"IsRecordPage": false,
 	}); err != nil {
