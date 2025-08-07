@@ -90,7 +90,12 @@ func (r *Recorder) UploadVideo(videoPath, title, description string) error {
 		return fmt.Errorf("path traversal not allowed in video path: %s", videoPath)
 	}
 
-	file, err := os.Open(videoPath)
+	// Final security check: validate path is safe before opening
+	if err := r.validatePath(videoPath, currentDir); err != nil {
+		return fmt.Errorf("video path validation failed: %w", err)
+	}
+
+	file, err := os.Open(videoPath) //nolint:gosec // Path validated above
 	if err != nil {
 		return fmt.Errorf("failed to open video file: %w", err)
 	}

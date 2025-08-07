@@ -88,7 +88,12 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("path traversal not allowed in config path: %s", path)
 	}
 
-	file, err := os.Open(path)
+	// Final security check: validate path is safe before opening
+	if err := validatePath(path); err != nil {
+		return nil, fmt.Errorf("config path validation failed: %w", err)
+	}
+
+	file, err := os.Open(path) //nolint:gosec // Path validated above
 	if err != nil {
 		return nil, fmt.Errorf("failed to open config file: %w", err)
 	}

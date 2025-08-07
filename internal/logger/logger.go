@@ -30,7 +30,7 @@ func New(logDir string) (*Logger, error) {
 		return nil, fmt.Errorf("path traversal not allowed in log file path: %s", logFile)
 	}
 
-	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
+	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600) //nolint:gosec // Path validated above
 	if err != nil {
 		return nil, fmt.Errorf("failed to open log file: %w", err)
 	}
