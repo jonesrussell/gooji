@@ -173,7 +173,7 @@ func (p *Processor) executeCommandWithOutput(args []string) (string, error) {
 
 	// Execute command with validated arguments
 	// Note: All arguments have been validated above, so this is safe
-	cmd := exec.Command(p.ffmpegPath, args...) //nolint:gosec
+	cmd := exec.Command(p.ffmpegPath, args...) //nolint:gosec // All arguments validated above
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	err := cmd.Run()
@@ -189,7 +189,7 @@ func (p *Processor) GetVideoInfo(inputPath string) (*VideoInfo, error) {
 
 	output, err := p.executeCommandWithOutput([]string{"-i", inputPath, "-f", "null", "-"})
 	if err != nil {
-		return nil, fmt.Errorf("failed to get video info: %v", err)
+		return nil, fmt.Errorf("failed to get video info: %w", err)
 	}
 
 	// Parse FFmpeg output
@@ -199,9 +199,18 @@ func (p *Processor) GetVideoInfo(inputPath string) (*VideoInfo, error) {
 	if durationStr := extractValue(output, "Duration: "); durationStr != "" {
 		parts := strings.Split(durationStr, ":")
 		if len(parts) == 3 {
-			hours, _ := strconv.ParseFloat(parts[0], 64)
-			minutes, _ := strconv.ParseFloat(parts[1], 64)
-			seconds, _ := strconv.ParseFloat(parts[2], 64)
+			hours, err := strconv.ParseFloat(parts[0], 64)
+			if err != nil {
+				hours = 0
+			}
+			minutes, err := strconv.ParseFloat(parts[1], 64)
+			if err != nil {
+				minutes = 0
+			}
+			seconds, err := strconv.ParseFloat(parts[2], 64)
+			if err != nil {
+				seconds = 0
+			}
 			info.Duration = hours*3600 + minutes*60 + seconds
 		}
 	}
@@ -210,7 +219,11 @@ func (p *Processor) GetVideoInfo(inputPath string) (*VideoInfo, error) {
 	if resStr := extractValue(output, "Stream #0:0"); resStr != "" {
 		if strings.Contains(resStr, "Video:") {
 			if res := extractValue(resStr, ", "); res != "" {
-				fmt.Sscanf(res, "%dx%d", &info.Width, &info.Height)
+				if _, err := fmt.Sscanf(res, "%dx%d", &info.Width, &info.Height); err != nil {
+					// If parsing fails, set default values
+					info.Width = 0
+					info.Height = 0
+				}
 			}
 		}
 	}
@@ -361,5 +374,5 @@ func (p *Processor) ValidateVideo(inputPath string) error {
 
 // EnsureDirectory ensures the output directory exists
 func (p *Processor) EnsureDirectory(path string) error {
-	return os.MkdirAll(filepath.Dir(path), 0755)
+	return os.MkdirAll(filepath.Dir(path), 0750)
 }

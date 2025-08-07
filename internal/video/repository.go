@@ -3,6 +3,7 @@ package video
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -59,7 +60,7 @@ func (r *repository) SaveVideo(ctx context.Context, file multipart.File, filenam
 				return "", fmt.Errorf("failed to write video file: %w", writeErr)
 			}
 		}
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -74,7 +75,7 @@ func (r *repository) SaveVideo(ctx context.Context, file multipart.File, filenam
 // SaveMetadata saves video metadata to storage
 func (r *repository) SaveMetadata(ctx context.Context, metadata *VideoMetadata) error {
 	// Ensure metadata directory exists
-	if err := os.MkdirAll(r.storage.Metadata, 0755); err != nil {
+	if err := os.MkdirAll(r.storage.Metadata, 0750); err != nil {
 		return fmt.Errorf("failed to create metadata directory: %w", err)
 	}
 

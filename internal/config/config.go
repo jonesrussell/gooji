@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Storage holds storage configuration
@@ -32,17 +33,44 @@ type Config struct {
 	} `json:"ffmpeg"`
 }
 
+// validatePath ensures a file path is secure
+func validatePath(filePath string) error {
+	if filePath == "" {
+		return fmt.Errorf("file path cannot be empty")
+	}
+
+	// Check for path traversal attempts
+	if strings.Contains(filePath, "..") {
+		return fmt.Errorf("path traversal not allowed: %s", filePath)
+	}
+
+	// Check for dangerous characters
+	dangerousChars := []string{"|", "&", ";", "`", "$", "(", ")", "{", "}", "[", "]", "*", "?", "\\"}
+	for _, char := range dangerousChars {
+		if strings.Contains(filePath, char) {
+			return fmt.Errorf("dangerous character '%s' not allowed in path: %s", char, filePath)
+		}
+	}
+
+	return nil
+}
+
 // Load reads the configuration from a JSON file and environment variables
 func Load(path string) (*Config, error) {
+	// Validate config path
+	if err := validatePath(path); err != nil {
+		return nil, fmt.Errorf("invalid config path: %w", err)
+	}
+
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open config file: %v", err)
+		return nil, fmt.Errorf("failed to open config file: %w", err)
 	}
 	defer file.Close()
 
 	var config Config
 	if err := json.NewDecoder(file).Decode(&config); err != nil {
-		return nil, fmt.Errorf("failed to decode config file: %v", err)
+		return nil, fmt.Errorf("failed to decode config file: %w", err)
 	}
 
 	// Set defaults if not specified

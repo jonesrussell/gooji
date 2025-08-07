@@ -17,15 +17,15 @@ type Logger struct {
 
 // New creates a new logger
 func New(logDir string) (*Logger, error) {
-	if err := os.MkdirAll(logDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create log directory: %v", err)
+	if err := os.MkdirAll(logDir, 0750); err != nil {
+		return nil, fmt.Errorf("failed to create log directory: %w", err)
 	}
 
 	// Create log file
 	logFile := filepath.Join(logDir, fmt.Sprintf("gooji_%s.log", time.Now().Format("2006-01-02")))
-	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open log file: %v", err)
+		return nil, fmt.Errorf("failed to open log file: %w", err)
 	}
 
 	// Determine log level from environment

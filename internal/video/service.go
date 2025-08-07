@@ -95,7 +95,9 @@ func (s *service) ProcessUpload(ctx context.Context, file multipart.File, header
 	info, err := s.processor.GetVideoInfo(videoPath)
 	if err != nil {
 		// Clean up saved file on error
-		s.repo.DeleteVideo(ctx, filename)
+		if cleanupErr := s.repo.DeleteVideo(ctx, filename); cleanupErr != nil {
+			s.logger.Error("Failed to cleanup video file after error: %v", cleanupErr)
+		}
 		return nil, fmt.Errorf("failed to get video info: %w", err)
 	}
 
@@ -113,7 +115,9 @@ func (s *service) ProcessUpload(ctx context.Context, file multipart.File, header
 	// Save metadata
 	if err := s.repo.SaveMetadata(ctx, videoMetadata); err != nil {
 		// Clean up saved file on error
-		s.repo.DeleteVideo(ctx, filename)
+		if cleanupErr := s.repo.DeleteVideo(ctx, filename); cleanupErr != nil {
+			s.logger.Error("Failed to cleanup video file after metadata save error: %v", cleanupErr)
+		}
 		return nil, fmt.Errorf("failed to save metadata: %w", err)
 	}
 

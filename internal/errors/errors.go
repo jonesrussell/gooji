@@ -41,7 +41,10 @@ func WriteError(w http.ResponseWriter, err error) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(appErr.Code)
-	json.NewEncoder(w).Encode(appErr)
+	if err := json.NewEncoder(w).Encode(appErr); err != nil {
+		// If we can't encode the error, write a simple error message
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
 }
 
 // Common error codes
