@@ -28,6 +28,12 @@ func New(logDir string) (*Logger, error) {
 		return nil, fmt.Errorf("failed to open log file: %v", err)
 	}
 
+	// Determine log level from environment
+	logLevel := zapcore.InfoLevel
+	if os.Getenv("APP_DEBUG") == "true" {
+		logLevel = zapcore.DebugLevel
+	}
+
 	// Configure Zap encoder
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "time",
@@ -48,12 +54,12 @@ func New(logDir string) (*Logger, error) {
 		zapcore.NewCore(
 			zapcore.NewJSONEncoder(encoderConfig),
 			zapcore.AddSync(file),
-			zapcore.InfoLevel,
+			logLevel,
 		),
 		zapcore.NewCore(
 			zapcore.NewConsoleEncoder(encoderConfig),
 			zapcore.AddSync(os.Stdout),
-			zapcore.InfoLevel,
+			logLevel,
 		),
 	)
 
@@ -68,6 +74,11 @@ func New(logDir string) (*Logger, error) {
 // Close closes the logger
 func (l *Logger) Close() error {
 	return l.zap.Sync()
+}
+
+// Debug logs a debug message
+func (l *Logger) Debug(format string, args ...interface{}) {
+	l.zap.Sugar().Debugf(format, args...)
 }
 
 // Info logs an info message

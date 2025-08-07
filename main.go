@@ -32,11 +32,18 @@ func main() {
 	}
 	defer log.Close()
 
+	// Log environment variable status
+	if os.Getenv("APP_DEBUG") == "true" {
+		log.Debug("Environment variables loaded")
+		log.Debug("APP_NAME=%s", os.Getenv("APP_NAME"))
+		log.Debug("APP_DEBUG=%s", os.Getenv("APP_DEBUG"))
+	}
+
 	// Create video processor
 	processor := ffmpeg.NewProcessor(cfg.FFmpeg.Path)
 
 	// Create video handler
-	handler, err := video.NewHandler(processor, cfg.Storage)
+	handler, err := video.NewHandler(processor, cfg.Storage, log)
 	if err != nil {
 		log.Fatal("Failed to create video handler: %v", err)
 	}

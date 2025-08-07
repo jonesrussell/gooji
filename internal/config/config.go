@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 )
 
 // Storage holds storage configuration
@@ -22,7 +23,7 @@ type Config struct {
 		Port int `json:"port"`
 	} `json:"server"`
 	Storage Storage `json:"storage"`
-	Video struct {
+	Video   struct {
 		MaxSize      int64    `json:"max_size"`
 		AllowedTypes []string `json:"allowed_types"`
 	} `json:"video"`
@@ -31,7 +32,7 @@ type Config struct {
 	} `json:"ffmpeg"`
 }
 
-// Load reads the configuration from a JSON file
+// Load reads the configuration from a JSON file and environment variables
 func Load(path string) (*Config, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -51,6 +52,16 @@ func Load(path string) (*Config, error) {
 	if config.Storage.BasePath == "" {
 		config.Storage.BasePath = "storage"
 	}
+
+	// Override with environment variables if set
+	if port := os.Getenv("GOOJI_PORT"); port != "" {
+		if p, err := strconv.Atoi(port); err == nil {
+			config.Server.Port = p
+		}
+	}
+
+	// Note: We can't use the logger here as it's not available yet
+	// Environment variable debug info will be logged by the main logger
 	if config.Storage.Uploads == "" {
 		config.Storage.Uploads = "storage/uploads"
 	}

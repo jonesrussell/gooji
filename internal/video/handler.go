@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"gooji/internal/config"
+	"gooji/internal/logger"
 	"gooji/pkg/ffmpeg"
 )
 
@@ -20,6 +21,7 @@ type Handler struct {
 	processor *ffmpeg.Processor
 	storage   config.Storage
 	templates *template.Template
+	logger    *logger.Logger
 }
 
 // VideoMetadata represents metadata for a recorded video
@@ -34,7 +36,7 @@ type VideoMetadata struct {
 }
 
 // NewHandler creates a new video handler
-func NewHandler(processor *ffmpeg.Processor, storage config.Storage) (*Handler, error) {
+func NewHandler(processor *ffmpeg.Processor, storage config.Storage, log *logger.Logger) (*Handler, error) {
 	// Create storage directories
 	dirs := []string{storage.Uploads, storage.Temp, storage.Logs, storage.Thumbnails, storage.Metadata}
 	for _, dir := range dirs {
@@ -46,6 +48,7 @@ func NewHandler(processor *ffmpeg.Processor, storage config.Storage) (*Handler, 
 	// Parse templates
 	templates, err := template.ParseFiles(
 		"web/templates/base.html",
+		"web/templates/home.html",
 		"web/templates/record.html",
 		"web/templates/gallery.html",
 		"web/templates/camera-test.html",
@@ -54,10 +57,15 @@ func NewHandler(processor *ffmpeg.Processor, storage config.Storage) (*Handler, 
 		return nil, fmt.Errorf("failed to parse templates: %v", err)
 	}
 
+	// Debug: Log template parsing success
+	log.Info("Templates parsed successfully")
+	log.Debug("Available templates: %s", templates.DefinedTemplates())
+
 	return &Handler{
 		processor: processor,
 		storage:   storage,
 		templates: templates,
+		logger:    log,
 	}, nil
 }
 
@@ -67,10 +75,18 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+
+	// Debug logging
+	h.logger.Debug("Serving home page")
+
+	// Check if templates are loaded correctly
+	h.logger.Debug("Available templates: %v", h.templates.DefinedTemplates())
+
 	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
 		"Page":         "home",
 		"IsRecordPage": false,
 	}); err != nil {
+		h.logger.Error("Template execution error: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -82,6 +98,10 @@ func (h *Handler) HandleRecord(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+
+	// Debug logging
+	h.logger.Debug("Serving record page")
+
 	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
 		"Page":         "record",
 		"IsRecordPage": true,
@@ -127,6 +147,10 @@ func (h *Handler) HandleCameraTest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+
+	// Debug logging
+	h.logger.Debug("Serving camera test page")
+
 	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
 		"Page":         "camera-test",
 		"IsRecordPage": false,
@@ -227,7 +251,7 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	info, err := h.processor.GetVideoInfo(videoPath)
 	if err != nil {
 		// Log the specific error for debugging
-		fmt.Printf("FFmpeg error for file %s: %v\n", videoPath, err)
+		h.logger.Error("FFmpeg error for file %s: %v", videoPath, err)
 		http.Error(w, fmt.Sprintf("Failed to process video: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -261,9 +285,9 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	thumbnailPath := filepath.Join(h.storage.Thumbnails, filename+".jpg")
 	if err := h.processor.GenerateThumbnail(videoPath, thumbnailPath, 1); err != nil {
 		// Log error but don't fail the request
-		fmt.Printf("Failed to generate thumbnail for %s: %v\n", videoPath, err)
+		h.logger.Error("Failed to generate thumbnail for %s: %v", videoPath, err)
 	} else {
-		fmt.Printf("Successfully generated thumbnail: %s\n", thumbnailPath)
+		h.logger.Info("Successfully generated thumbnail: %s", thumbnailPath)
 	}
 
 	// Return success response
