@@ -82,7 +82,8 @@ func main() {
 		log.Info("Starting server on port %d", cfg.Server.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Error("Failed to start server: %v", err)
-			os.Exit(1)
+			// Don't call os.Exit here as it prevents defer from running
+			// The main function will exit naturally
 		}
 	}()
 

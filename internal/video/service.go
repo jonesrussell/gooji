@@ -180,7 +180,8 @@ func (s *service) GenerateThumbnail(ctx context.Context, videoPath string) error
 
 	// Extract filename and create thumbnail path
 	filename := filepath.Base(videoPath)
-	thumbnailPath := filepath.Join("storage/thumbnails", strings.TrimSuffix(filename, filepath.Ext(filename))+".jpg")
+	// Use a relative path that will be resolved relative to the current working directory
+	thumbnailPath := filepath.Join("storage", "thumbnails", strings.TrimSuffix(filename, filepath.Ext(filename))+".jpg")
 
 	// Generate thumbnail at 1 second mark
 	if err := s.processor.GenerateThumbnail(videoPath, thumbnailPath, 1.0); err != nil {
