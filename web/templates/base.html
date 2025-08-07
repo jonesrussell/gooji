@@ -29,6 +29,9 @@
         </div>
     </footer>
 
+    <!-- Only load app.js on pages that need it (not record page) -->
+    {{if not .IsRecordPage}}
     <script src="/static/js/app.js"></script>
+    {{end}}
 </body>
 </html> 

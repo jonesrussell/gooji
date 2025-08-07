@@ -12,12 +12,50 @@ let recordedChunks = [];
 // Initialize camera
 async function initCamera() {
     try {
+        console.log('Initializing camera...');
+        
+        // Check if getUserMedia is supported
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('getUserMedia is not supported in this browser');
+        }
+
+        // Check available devices
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        console.log('Available video devices:', videoDevices);
+
+        if (videoDevices.length === 0) {
+            throw new Error('No video devices found');
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
+            video: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                facingMode: 'user'
+            },
             audio: true
         });
+        
+        console.log('Camera stream obtained successfully');
         preview.srcObject = stream;
-        mediaRecorder = new MediaRecorder(stream);
+        
+        // Wait for video to be ready
+        preview.onloadedmetadata = () => {
+            console.log('Video metadata loaded');
+            recordBtn.disabled = false;
+        };
+
+        // Try to use preferred MIME type, fallback to default
+        let mimeType = 'video/webm;codecs=vp9,opus';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'video/webm';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+                mimeType = '';
+            }
+        }
+        
+        mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
 
         mediaRecorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
@@ -33,10 +71,31 @@ async function initCamera() {
             uploadBtn.disabled = false;
         };
 
-        recordBtn.disabled = false;
     } catch (err) {
         console.error('Error accessing camera:', err);
-        alert('Error accessing camera. Please make sure you have granted permission.');
+        
+        // Provide more specific error messages
+        let errorMessage = 'Error accessing camera. ';
+        if (err.name === 'NotAllowedError') {
+            errorMessage += 'Please grant camera and microphone permissions and refresh the page.';
+        } else if (err.name === 'NotFoundError') {
+            errorMessage += 'No camera found. Please check your device connections.';
+        } else if (err.name === 'NotSupportedError') {
+            errorMessage += 'Your browser does not support video recording.';
+        } else {
+            errorMessage += err.message;
+        }
+        
+        alert(errorMessage);
+        
+        // Show error in UI
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4';
+        errorDiv.innerHTML = `
+            <strong>Camera Error:</strong> ${errorMessage}
+            <br><small>Please check your browser permissions and refresh the page.</small>
+        `;
+        preview.parentElement.insertBefore(errorDiv, preview);
     }
 }
 
@@ -129,6 +188,24 @@ async function loadRecordings() {
     }
 }
 
-// Initialize
-initCamera();
-loadRecordings(); 
+// Initialize with retry mechanism
+let cameraRetryCount = 0;
+const maxRetries = 3;
+
+async function initializeWithRetry() {
+    try {
+        await initCamera();
+        loadRecordings();
+    } catch (err) {
+        console.error('Camera initialization failed:', err);
+        if (cameraRetryCount < maxRetries) {
+            cameraRetryCount++;
+            console.log(`Retrying camera initialization (${cameraRetryCount}/${maxRetries})...`);
+            setTimeout(initializeWithRetry, 1000);
+        } else {
+            console.error('Max retries reached for camera initialization');
+        }
+    }
+}
+
+initializeWithRetry(); 

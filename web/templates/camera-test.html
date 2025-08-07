@@ -1,0 +1,173 @@
+{{define "content"}}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Camera Test Page</h1>
+
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Camera Status</h2>
+        
+        <div id="cameraStatus" class="mb-4">
+            <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                <strong>Status:</strong> Initializing camera...
+            </div>
+        </div>
+
+        <div class="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg overflow-hidden mb-4">
+            <video id="testVideo" class="w-full h-full" autoplay muted></video>
+        </div>
+
+        <div id="deviceInfo" class="text-sm text-gray-600 mb-4">
+            <h3 class="font-semibold mb-2">Available Devices:</h3>
+            <div id="deviceList">Loading...</div>
+        </div>
+
+        <div class="flex space-x-4">
+            <button id="retryBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Retry Camera
+            </button>
+            <button id="permissionsBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                Check Permissions
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Camera test functionality
+class CameraTest {
+    constructor() {
+        this.video = document.getElementById('testVideo');
+        this.status = document.getElementById('cameraStatus');
+        this.deviceList = document.getElementById('deviceList');
+        this.retryBtn = document.getElementById('retryBtn');
+        this.permissionsBtn = document.getElementById('permissionsBtn');
+
+        this.retryBtn.addEventListener('click', () => this.initializeCamera());
+        this.permissionsBtn.addEventListener('click', () => this.checkPermissions());
+
+        this.initializeCamera();
+        this.loadDeviceInfo();
+    }
+
+    updateStatus(message, type = 'info') {
+        const colors = {
+            info: 'bg-blue-100 border-blue-400 text-blue-700',
+            success: 'bg-green-100 border-green-400 text-green-700',
+            error: 'bg-red-100 border-red-400 text-red-700',
+            warning: 'bg-yellow-100 border-yellow-400 text-yellow-700'
+        };
+
+        this.status.innerHTML = `
+            <div class="border px-4 py-3 rounded ${colors[type]}">
+                <strong>Status:</strong> ${message}
+            </div>
+        `;
+    }
+
+    async loadDeviceInfo() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            const audioDevices = devices.filter(device => device.kind === 'audioinput');
+
+            let html = '<div class="space-y-2">';
+            
+            html += '<h4 class="font-semibold">Video Devices:</h4>';
+            if (videoDevices.length === 0) {
+                html += '<p class="text-red-600">No video devices found</p>';
+            } else {
+                videoDevices.forEach((device, index) => {
+                    html += `<div class="ml-4">${index + 1}. ${device.label || 'Unknown device'}</div>`;
+                });
+            }
+
+            html += '<h4 class="font-semibold mt-4">Audio Devices:</h4>';
+            if (audioDevices.length === 0) {
+                html += '<p class="text-red-600">No audio devices found</p>';
+            } else {
+                audioDevices.forEach((device, index) => {
+                    html += `<div class="ml-4">${index + 1}. ${device.label || 'Unknown device'}</div>`;
+                });
+            }
+
+            html += '</div>';
+            this.deviceList.innerHTML = html;
+        } catch (err) {
+            this.deviceList.innerHTML = `<div class="text-red-600">Error loading device info: ${err.message}</div>`;
+        }
+    }
+
+    async checkPermissions() {
+        try {
+            const permissions = await navigator.permissions.query({ name: 'camera' });
+            const audioPermissions = await navigator.permissions.query({ name: 'microphone' });
+            
+            let message = `Camera: ${permissions.state}, Microphone: ${audioPermissions.state}`;
+            let type = 'info';
+            
+            if (permissions.state === 'denied' || audioPermissions.state === 'denied') {
+                type = 'error';
+                message += ' - Please grant permissions in your browser settings';
+            } else if (permissions.state === 'granted' && audioPermissions.state === 'granted') {
+                type = 'success';
+                message += ' - Permissions granted';
+            }
+            
+            this.updateStatus(message, type);
+        } catch (err) {
+            this.updateStatus(`Permission check failed: ${err.message}`, 'error');
+        }
+    }
+
+    async initializeCamera() {
+        this.updateStatus('Initializing camera...', 'info');
+
+        try {
+            // Check if getUserMedia is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('getUserMedia is not supported in this browser');
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'user'
+                },
+                audio: true
+            });
+
+            this.video.srcObject = stream;
+            
+            this.video.onloadedmetadata = () => {
+                this.updateStatus('Camera initialized successfully!', 'success');
+            };
+
+            this.video.onerror = (err) => {
+                this.updateStatus(`Video error: ${err.message}`, 'error');
+            };
+
+        } catch (err) {
+            console.error('Camera initialization error:', err);
+            
+            let errorMessage = 'Camera initialization failed. ';
+            if (err.name === 'NotAllowedError') {
+                errorMessage += 'Please grant camera and microphone permissions.';
+            } else if (err.name === 'NotFoundError') {
+                errorMessage += 'No camera found. Please check your device connections.';
+            } else if (err.name === 'NotSupportedError') {
+                errorMessage += 'Your browser does not support video recording.';
+            } else {
+                errorMessage += err.message;
+            }
+            
+            this.updateStatus(errorMessage, 'error');
+        }
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    new CameraTest();
+});
+</script>
+{{end}}

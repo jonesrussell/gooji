@@ -48,6 +48,7 @@ func NewHandler(processor *ffmpeg.Processor, storage config.Storage) (*Handler, 
 		"web/templates/base.html",
 		"web/templates/record.html",
 		"web/templates/gallery.html",
+		"web/templates/camera-test.html",
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse templates: %v", err)
@@ -67,7 +68,8 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
-		"Page": "home",
+		"Page":         "home",
+		"IsRecordPage": false,
 	}); err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -81,7 +83,8 @@ func (h *Handler) HandleRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
-		"Page": "record",
+		"Page":         "record",
+		"IsRecordPage": true,
 	}); err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -95,7 +98,8 @@ func (h *Handler) HandleEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
-		"Page": "edit",
+		"Page":         "edit",
+		"IsRecordPage": false,
 	}); err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -109,7 +113,23 @@ func (h *Handler) HandleGallery(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
-		"Page": "gallery",
+		"Page":         "gallery",
+		"IsRecordPage": false,
+	}); err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+// HandleCameraTest serves the camera test page
+func (h *Handler) HandleCameraTest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if err := h.templates.ExecuteTemplate(w, "base.html", map[string]interface{}{
+		"Page":         "camera-test",
+		"IsRecordPage": false,
 	}); err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -130,10 +150,10 @@ func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check video directory
-			videoDirAccessible := false
-		if _, err := os.Stat(h.storage.Uploads); err == nil {
-			videoDirAccessible = true
-		}
+	videoDirAccessible := false
+	if _, err := os.Stat(h.storage.Uploads); err == nil {
+		videoDirAccessible = true
+	}
 
 	health := map[string]interface{}{
 		"status":    "healthy",
