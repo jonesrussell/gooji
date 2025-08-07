@@ -151,35 +151,37 @@ func (r *repository) ListMetadata(ctx context.Context) ([]VideoMetadata, error) 
 		return nil, fmt.Errorf("failed to read metadata directory: %w", err)
 	}
 
-	var videos []VideoMetadata
+	videos := make([]VideoMetadata, 0, len(files))
 	for _, file := range files {
-		// Only process JSON files
-		if !file.IsDir() && strings.HasSuffix(file.Name(), ".json") {
-			metadataPath := filepath.Join(r.storage.Metadata, file.Name())
-
-			// Validate path is within allowed directory
-			if err := r.validatePath(metadataPath, r.storage.Metadata); err != nil {
-				r.logger.Error("Invalid metadata path found: %s", metadataPath)
-				continue
-			}
-
-			// Open and decode metadata file
-			metadataFile, err := os.Open(metadataPath)
-			if err != nil {
-				r.logger.Error("Failed to open metadata file %s: %v", metadataPath, err)
-				continue
-			}
-
-			var metadata VideoMetadata
-			if err := json.NewDecoder(metadataFile).Decode(&metadata); err != nil {
-				metadataFile.Close()
-				r.logger.Error("Failed to decode metadata file %s: %v", metadataPath, err)
-				continue
-			}
-			metadataFile.Close()
-
-			videos = append(videos, metadata)
+		// Skip directories and non-JSON files
+		if file.IsDir() || !strings.HasSuffix(file.Name(), ".json") {
+			continue
 		}
+
+		metadataPath := filepath.Join(r.storage.Metadata, file.Name())
+
+		// Validate path is within allowed directory
+		if err := r.validatePath(metadataPath, r.storage.Metadata); err != nil {
+			r.logger.Error("Invalid metadata path found: %s", metadataPath)
+			continue
+		}
+
+		// Open and decode metadata file
+		metadataFile, err := os.Open(metadataPath) //nolint:gosec // Path validated above
+		if err != nil {
+			r.logger.Error("Failed to open metadata file %s: %v", metadataPath, err)
+			continue
+		}
+
+		var metadata VideoMetadata
+		if err := json.NewDecoder(metadataFile).Decode(&metadata); err != nil {
+			metadataFile.Close()
+			r.logger.Error("Failed to decode metadata file %s: %v", metadataPath, err)
+			continue
+		}
+		metadataFile.Close()
+
+		videos = append(videos, metadata)
 	}
 
 	return videos, nil

@@ -46,8 +46,7 @@ func main() {
 	handler, err := video.NewHandler(processor, &cfg.Storage, log)
 	if err != nil {
 		log.Error("Failed to create video handler: %v", err)
-		log.Close()
-		os.Exit(1)
+		return // Let defer handle cleanup
 	}
 
 	// Create router
