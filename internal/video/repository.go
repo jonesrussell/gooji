@@ -32,7 +32,7 @@ func NewRepository(storage config.Storage, logger *logger.Logger) Repository {
 // SaveVideo saves a video file to storage
 func (r *repository) SaveVideo(ctx context.Context, file multipart.File, filename string) (string, error) {
 	// Ensure uploads directory exists
-	if err := os.MkdirAll(r.storage.Uploads, 0755); err != nil {
+	if err := os.MkdirAll(r.storage.Uploads, 0750); err != nil {
 		return "", fmt.Errorf("failed to create uploads directory: %w", err)
 	}
 
@@ -141,7 +141,7 @@ func (r *repository) GetMetadata(ctx context.Context, id string) (*VideoMetadata
 // ListMetadata retrieves all video metadata
 func (r *repository) ListMetadata(ctx context.Context) ([]VideoMetadata, error) {
 	// Ensure metadata directory exists
-	if err := os.MkdirAll(r.storage.Metadata, 0755); err != nil {
+	if err := os.MkdirAll(r.storage.Metadata, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create metadata directory: %w", err)
 	}
 

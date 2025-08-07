@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -49,6 +50,23 @@ func validatePath(filePath string) error {
 	for _, char := range dangerousChars {
 		if strings.Contains(filePath, char) {
 			return fmt.Errorf("dangerous character '%s' not allowed in path: %s", char, filePath)
+		}
+	}
+
+	// For config files, only allow relative paths or paths within current directory
+	if filepath.IsAbs(filePath) {
+		currentDir, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current directory: %w", err)
+		}
+
+		absFilePath, err := filepath.Abs(filePath)
+		if err != nil {
+			return fmt.Errorf("failed to resolve file path: %w", err)
+		}
+
+		if !strings.HasPrefix(absFilePath, currentDir) {
+			return fmt.Errorf("config file path %s is outside current directory %s", absFilePath, currentDir)
 		}
 	}
 
