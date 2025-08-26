@@ -207,7 +207,14 @@ func (h *Handler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 
 // GetVideo returns a video file
 func (h *Handler) GetVideo(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	// Extract ID from path: /api/videos/{id}
+	pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+	if len(pathParts) < 3 || pathParts[0] != "api" || pathParts[1] != "videos" {
+		h.handleValidationError(w, r, "Invalid video endpoint", nil)
+		return
+	}
+
+	id := pathParts[2]
 	if id == "" {
 		h.handleValidationError(w, r, "Missing video ID", nil)
 		return

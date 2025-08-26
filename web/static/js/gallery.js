@@ -92,7 +92,7 @@ function createVideoCard(video) {
 // Open video modal
 function openVideoModal(video) {
     modalTitle.textContent = video.title;
-    modalVideo.src = `/api/videos?id=${video.id}`;
+    modalVideo.src = `/api/videos/${video.id}`;
     modalDescription.textContent = video.description;
 
     modalTags.innerHTML = video.tags.map(tag => `
