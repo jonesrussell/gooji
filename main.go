@@ -66,7 +66,6 @@ func main() {
 	mux.HandleFunc("/record", handler.HandleRecord)
 	mux.HandleFunc("/edit/", handler.HandleEdit)
 	mux.HandleFunc("/gallery", handler.HandleGallery)
-	mux.HandleFunc("/camera-test", handler.HandleCameraTest)
 
 	// Health check endpoint
 	mux.HandleFunc("/health", handler.HandleHealth)

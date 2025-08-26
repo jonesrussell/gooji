@@ -181,5 +181,5 @@ func (r *Recorder) GetVideoURL(id string) string {
 
 // GetThumbnailURL returns the URL for a video thumbnail
 func (r *Recorder) GetThumbnailURL(id string) string {
-	return fmt.Sprintf("%s/api/videos/thumbnail/%s", r.apiURL, id)
+	return fmt.Sprintf("%s/api/thumbnails?id=%s", r.apiURL, id)
 }

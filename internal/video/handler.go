@@ -131,23 +131,8 @@ func (h *Handler) HandleGallery(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// HandleCameraTest serves the camera test page
-func (h *Handler) HandleCameraTest(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		h.handleMethodNotAllowed(w, r)
-		return
-	}
 
-	h.logger.Debug("Serving camera test page")
 
-	if err := h.templates["camera-test"].ExecuteTemplate(w, "base.html", map[string]interface{}{
-		"Page":         "camera-test",
-		"IsRecordPage": false,
-	}); err != nil {
-		h.handleInternalError(w, r, err)
-		return
-	}
-}
 
 // HandleHealth provides system health information
 func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
@@ -304,10 +289,7 @@ func parseTemplates() (map[string]*template.Template, error) {
 		return nil, fmt.Errorf("failed to parse record template: %w", err)
 	}
 
-	cameraTestTemplate, err := template.Must(baseTemplate.Clone()).ParseFiles("web/templates/camera-test.html")
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse camera test template: %w", err)
-	}
+
 
 	// Parse standalone templates
 	galleryTemplate, err := template.ParseFiles("web/templates/gallery.html")
@@ -331,7 +313,6 @@ func parseTemplates() (map[string]*template.Template, error) {
 		"record":      recordTemplate,
 		"gallery":     galleryTemplate,
 		"editor":      editorTemplate,
-		"camera-test": cameraTestTemplate,
 		"index":       indexTemplate,
 	}
 
