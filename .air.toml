@@ -2,7 +2,7 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-cmd = "go build -o ./tmp/main cmd/gooji/main.go"
+cmd = "go build -o ./tmp/main main.go"
 bin = "./tmp/main"
 full_bin = "./tmp/main"
 include_ext = ["go", "tpl", "tmpl", "html"]
@@ -23,4 +23,4 @@ build = "yellow"
 runner = "green"
 
 [misc]
-clean_on_exit = true 
+clean_on_exit = true
