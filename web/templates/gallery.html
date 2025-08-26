@@ -1,94 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gooji - Video Gallery</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="/static/css/style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
-    <div class="min-h-screen flex flex-col">
-        <!-- Header -->
-        <header class="bg-red-600 text-white p-4">
-            <h1 class="text-3xl font-bold text-center">Gooji Video Gallery</h1>
-            <p class="text-center text-lg">Browse Ojibwe language and culture videos</p>
-        </header>
 
-        <!-- Main Content -->
-        <main class="flex-grow container mx-auto p-4">
-            <!-- Search and Filter -->
-            <div class="bg-white p-4 rounded-lg shadow-md mb-6">
-                <div class="flex flex-col md:flex-row gap-4">
-                    <div class="flex-grow">
-                        <input type="text" id="searchInput" placeholder="Search videos..."
-                            class="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-['Inter']">
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
+        <div class="absolute inset-0 bg-black/20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                    Video Gallery
+                </h1>
+                <p class="text-lg md:text-xl text-indigo-100 mb-6 max-w-2xl mx-auto leading-relaxed">
+                    Browse and explore Ojibwe language and culture videos
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/"
+                        class="group inline-flex items-center justify-center px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 hover:bg-white/30 border border-white/30">
+                        <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-200" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Back to Home
+                    </a>
+                    <a href="/record"
+                        class="group inline-flex items-center justify-center px-6 py-3 bg-white text-indigo-600 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 hover:bg-indigo-50">
+                        <svg class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-200" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        Record New Video
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Decorative elements -->
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div class="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Search and Filter Section -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <div class="flex-grow">
+                    <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-2">Search Videos</label>
+                    <div class="relative">
+                        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" id="searchInput"
+                            placeholder="Search for language lessons, stories, or cultural teachings..."
+                            class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500">
                     </div>
-                    <div class="flex gap-4">
-                        <select id="tagFilter" class="px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">All Tags</option>
-                            <option value="language">Language</option>
-                            <option value="culture">Culture</option>
-                            <option value="story">Story</option>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div>
+                        <label for="tagFilter" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <select id="tagFilter"
+                            class="px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white text-gray-900">
+                            <option value="">All Categories</option>
+                            <option value="language">Language Learning</option>
+                            <option value="culture">Cultural Traditions</option>
+                            <option value="story">Stories & Legends</option>
+                            <option value="history">Historical Knowledge</option>
                         </select>
-                        <select id="sortBy" class="px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="sortBy" class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                        <select id="sortBy"
+                            class="px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white text-gray-900">
                             <option value="newest">Newest First</option>
                             <option value="oldest">Oldest First</option>
-                            <option value="title">Title</option>
+                            <option value="title">Title A-Z</option>
+                            <option value="duration">Duration</option>
                         </select>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Video Grid -->
-            <div id="videoGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Videos will be loaded here dynamically -->
+        <!-- Video Grid -->
+        <div id="videoGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            <!-- Videos will be loaded here dynamically -->
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="hidden text-center py-12">
+            <div class="inline-flex items-center space-x-3">
+                <div class="animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
+                <span class="text-gray-600 font-medium">Loading videos...</span>
             </div>
+        </div>
 
-            <!-- Loading Indicator -->
-            <div id="loadingIndicator" class="hidden text-center py-8">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
-            </div>
-
-            <!-- Load More Button -->
-            <div class="text-center mt-8">
-                <button id="loadMoreBtn" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                    Load More
-                </button>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="bg-gray-800 text-white p-4 text-center">
-            <p>Created for Sagamok Anishnawbek First Nation</p>
-        </footer>
+        <!-- Load More Button -->
+        <div class="text-center">
+            <button id="loadMoreBtn"
+                class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transform hover:-translate-y-1 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+                Load More Videos
+            </button>
+        </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-16 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h3 class="text-2xl font-bold mb-4">Gooji</h3>
+                <p class="text-gray-300 mb-6 max-w-2xl mx-auto">
+                    Dedicated to preserving and sharing the rich cultural heritage of the Ojibwe people through modern
+                    technology and storytelling.
+                </p>
+                <div class="border-t border-gray-800 pt-8">
+                    <p class="text-gray-400">
+                        Created for Sagamok Anishnawbek First Nation • Honoring our ancestors, preserving our future
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
     <!-- Video Modal -->
-    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg max-w-4xl w-full mx-4">
-            <div class="p-4 border-b">
-                <div class="flex justify-between items-center">
-                    <h2 id="modalTitle" class="text-xl font-semibold"></h2>
-                    <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+    <div id="videoModal"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl max-w-5xl w-full mx-4 shadow-2xl transform transition-all duration-300 scale-95 opacity-0"
+            id="modalContent">
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <h2 id="modalTitle" class="text-2xl font-bold text-gray-900 mb-2"></h2>
+                        <p id="modalDescription" class="text-gray-600"></p>
+                    </div>
+                    <button id="closeModal"
+                        class="ml-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors duration-200">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
             </div>
-            <div class="p-4">
-                <div class="aspect-w-16 aspect-h-9">
-                    <video id="modalVideo" class="w-full h-full" controls></video>
+            <div class="p-6">
+                <div class="aspect-w-16 aspect-h-9 rounded-xl overflow-hidden bg-gray-100 mb-6">
+                    <video id="modalVideo" class="w-full h-full object-cover" controls preload="metadata"></video>
                 </div>
-                <div class="mt-4">
-                    <p id="modalDescription" class="text-gray-600"></p>
-                    <div id="modalTags" class="mt-2 flex flex-wrap gap-2"></div>
-                </div>
+                <div id="modalTags" class="flex flex-wrap gap-2"></div>
             </div>
         </div>
     </div>
 
     <script src="/static/js/gallery.js"></script>
+    <script>
+        // Add smooth animations for modal
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('videoModal');
+            const modalContent = document.getElementById('modalContent');
+
+            // Show modal with animation
+            window.openVideoModal = function (video) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            };
+
+            // Hide modal with animation
+            window.closeVideoModal = function () {
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 200);
+            };
+        });
+    </script>
 </body>
-</html> 
+
+</html>
