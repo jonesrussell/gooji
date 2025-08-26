@@ -65,7 +65,10 @@ function createVideoCard(video) {
     card.className = 'bg-white rounded-lg shadow-md overflow-hidden';
     card.innerHTML = `
         <div class="aspect-w-16 aspect-h-9 cursor-pointer">
-            <img src="/api/videos/thumbnail?id=${video.id}" alt="${video.title}" class="w-full h-full object-cover">
+            <img src="/api/thumbnails?id=${video.id}"
+                 alt="${video.title}"
+                 class="w-full h-full object-cover"
+                 onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDMyMCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNjAgOTBDMTQzLjQzMSA5MCAxMzAgMTAzLjQzMSAxMzAgMTIwQzEzMCAxMzYuNTY5IDE0My40MzEgMTUwIDE2MCAxNTBDMTc2LjU2OSAxNTAgMTkwIDEzNi41NjkgMTkwIDEyMEMxOTAgMTAzLjQzMSAxNzYuNTY5IDkwIDE2MCA5MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHBhdGggZD0iTTE2MCAxMzBDMTU1LjU4MiAxMzAgMTUyIDEyNi40MTggMTUyIDEyMkMxNTIgMTE3LjU4MiAxNTUuNTgyIDExNCAxNjAgMTE0QzE2NC40MTggMTE0IDE2OCAxMTcuNTgyIDE2OCAxMjJDMTY4IDEyNi40MTggMTY0LjQxOCAxMzAgMTYwIDEzMFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo='; this.alt='Video thumbnail not available';">
         </div>
         <div class="p-4">
             <h3 class="font-semibold text-gray-800">${video.title}</h3>
@@ -91,7 +94,7 @@ function openVideoModal(video) {
     modalTitle.textContent = video.title;
     modalVideo.src = `/api/videos?id=${video.id}`;
     modalDescription.textContent = video.description;
-    
+
     modalTags.innerHTML = video.tags.map(tag => `
         <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">${tag}</span>
     `).join('');
@@ -148,4 +151,4 @@ function debounce(func, wait) {
 }
 
 // Initialize
-loadVideos(1); 
+loadVideos(1);

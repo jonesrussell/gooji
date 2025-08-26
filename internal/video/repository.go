@@ -241,6 +241,11 @@ func (r *repository) VideoExists(ctx context.Context, id string) bool {
 	return err == nil
 }
 
+// GetThumbnailsDir returns the thumbnails directory path
+func (r *repository) GetThumbnailsDir() string {
+	return r.storage.Thumbnails
+}
+
 // validatePath ensures a file path is within the allowed directory
 func (r *repository) validatePath(filePath, allowedDir string) error {
 	// Resolve absolute paths

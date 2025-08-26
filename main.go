@@ -58,6 +58,7 @@ func main() {
 
 	// API routes
 	mux.HandleFunc("/api/videos", handler.HandleVideos)
+	mux.HandleFunc("/api/thumbnails", handler.GetThumbnail)
 	mux.HandleFunc("/api/videos/", handler.HandleVideo)
 
 	// Page routes

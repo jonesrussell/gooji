@@ -29,13 +29,18 @@ type Repository interface {
 	ListMetadata(ctx context.Context) ([]VideoMetadata, error)
 	DeleteVideo(ctx context.Context, id string) error
 	VideoExists(ctx context.Context, id string) bool
+	GetThumbnailsDir() string
 }
 
 // Processor defines the interface for video processing operations
 type Processor interface {
 	GetVideoInfo(inputPath string) (*ffmpeg.VideoInfo, error)
-	GenerateThumbnail(inputPath, outputPath string, timestamp float64) error
 	ValidateVideo(inputPath string) error
+}
+
+// ThumbnailProcessor defines the interface for thumbnail generation operations
+type ThumbnailProcessor interface {
+	GenerateThumbnail(inputPath, outputPath string, timestamp float64) error
 }
 
 // VideoMetadata represents metadata for a recorded video
@@ -61,17 +66,19 @@ type VideoInfo ffmpeg.VideoInfo
 
 // service implements the Service interface
 type service struct {
-	repo      Repository
-	processor Processor
-	logger    *logger.Logger
+	repo               Repository
+	processor          Processor
+	thumbnailProcessor ThumbnailProcessor
+	logger             *logger.Logger
 }
 
 // NewService creates a new video service
-func NewService(repo Repository, processor Processor, logger *logger.Logger) Service {
+func NewService(repo Repository, processor Processor, thumbnailProcessor ThumbnailProcessor, logger *logger.Logger) Service {
 	return &service{
-		repo:      repo,
-		processor: processor,
-		logger:    logger,
+		repo:               repo,
+		processor:          processor,
+		thumbnailProcessor: thumbnailProcessor,
+		logger:             logger,
 	}
 }
 
@@ -121,14 +128,13 @@ func (s *service) ProcessUpload(ctx context.Context, file multipart.File, header
 		return nil, fmt.Errorf("failed to save metadata: %w", err)
 	}
 
-	// Generate thumbnail asynchronously
-	go func(ctx context.Context) {
-		if err := s.GenerateThumbnail(ctx, videoPath); err != nil {
-			s.logger.Error("Failed to generate thumbnail for %s: %v", videoPath, err)
-		} else {
-			s.logger.Info("Successfully generated thumbnail for: %s", videoPath)
-		}
-	}(ctx)
+	// Generate thumbnail synchronously to ensure it's available immediately
+	if err := s.GenerateThumbnail(ctx, videoPath); err != nil {
+		s.logger.Error("Failed to generate thumbnail for %s: %v", videoPath, err)
+		// Don't fail the upload if thumbnail generation fails
+	} else {
+		s.logger.Info("Successfully generated thumbnail for: %s", videoPath)
+	}
 
 	s.logger.Info("Successfully processed video upload: %s", filename)
 	return videoMetadata, nil
@@ -180,11 +186,13 @@ func (s *service) GenerateThumbnail(ctx context.Context, videoPath string) error
 
 	// Extract filename and create thumbnail path
 	filename := filepath.Base(videoPath)
-	// Use a relative path that will be resolved relative to the current working directory
-	thumbnailPath := filepath.Join("storage", "thumbnails", strings.TrimSuffix(filename, filepath.Ext(filename))+".jpg")
+	thumbnailName := strings.TrimSuffix(filename, filepath.Ext(filename)) + ".jpg"
+
+	// Use the configured thumbnails directory path
+	thumbnailPath := filepath.Join(s.repo.GetThumbnailsDir(), thumbnailName)
 
 	// Generate thumbnail at 1 second mark
-	if err := s.processor.GenerateThumbnail(videoPath, thumbnailPath, 1.0); err != nil {
+	if err := s.thumbnailProcessor.GenerateThumbnail(videoPath, thumbnailPath, 1.0); err != nil {
 		return fmt.Errorf("failed to generate thumbnail: %w", err)
 	}
 

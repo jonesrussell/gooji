@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"gooji/internal/config"
@@ -30,12 +31,15 @@ func NewHandler(processor *ffmpeg.Processor, storage *config.Storage, log *logge
 		return nil, fmt.Errorf("failed to create storage directories: %w", err)
 	}
 
-	// Create secure processor with allowed directory restriction
+	// Create secure processor with allowed directory restriction for uploads
 	secureProcessor := ffmpeg.NewProcessorWithSecurity(processor.FFmpegPath(), storage.Uploads)
+
+	// Create thumbnail processor that can access both uploads and thumbnails directories
+	thumbnailProcessor := ffmpeg.NewProcessorWithSecurity(processor.FFmpegPath(), storage.BasePath)
 
 	// Create repository and service
 	repo := NewRepository(storage, log)
-	service := NewService(repo, secureProcessor, log)
+	service := NewService(repo, secureProcessor, thumbnailProcessor, log)
 
 	// Parse templates
 	templates, err := parseTemplates()
@@ -246,7 +250,9 @@ func (h *Handler) GetThumbnail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	thumbnailPath := filepath.Join(h.storage.Thumbnails, id+".jpg")
+	// Strip the file extension from the id to match thumbnail naming convention
+	thumbnailName := strings.TrimSuffix(id, filepath.Ext(id)) + ".jpg"
+	thumbnailPath := filepath.Join(h.storage.Thumbnails, thumbnailName)
 	if _, err := os.Stat(thumbnailPath); os.IsNotExist(err) {
 		h.handleNotFoundError(w, r, "Thumbnail not found", err)
 		return

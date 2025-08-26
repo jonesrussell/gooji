@@ -13,7 +13,7 @@ let recordedChunks = [];
 async function initCamera() {
     try {
         console.log('Initializing camera...');
-        
+
         // Check if getUserMedia is supported
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             throw new Error('getUserMedia is not supported in this browser');
@@ -36,10 +36,10 @@ async function initCamera() {
             },
             audio: true
         });
-        
+
         console.log('Camera stream obtained successfully');
         preview.srcObject = stream;
-        
+
         // Wait for video to be ready
         preview.onloadedmetadata = () => {
             console.log('Video metadata loaded');
@@ -54,7 +54,7 @@ async function initCamera() {
                 mimeType = '';
             }
         }
-        
+
         mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
 
         mediaRecorder.ondataavailable = (event) => {
@@ -73,7 +73,7 @@ async function initCamera() {
 
     } catch (err) {
         console.error('Error accessing camera:', err);
-        
+
         // Provide more specific error messages
         let errorMessage = 'Error accessing camera. ';
         if (err.name === 'NotAllowedError') {
@@ -85,9 +85,9 @@ async function initCamera() {
         } else {
             errorMessage += err.message;
         }
-        
+
         alert(errorMessage);
-        
+
         // Show error in UI
         const errorDiv = document.createElement('div');
         errorDiv.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4';
@@ -138,13 +138,13 @@ uploadForm.addEventListener('submit', async (e) => {
 
         const result = await response.json();
         alert('Video uploaded successfully!');
-        
+
         // Reset form and recording
         uploadForm.reset();
         recordedChunks = [];
         preview.srcObject = null;
         uploadBtn.disabled = true;
-        
+
         // Refresh recordings list
         loadRecordings();
     } catch (err) {
@@ -169,7 +169,7 @@ async function loadRecordings() {
             videoCard.className = 'bg-gray-100 rounded-lg overflow-hidden';
             videoCard.innerHTML = `
                 <div class="aspect-w-16 aspect-h-9">
-                    <img src="/api/videos/thumbnail?id=${video.id}" alt="${video.title}" class="w-full h-full object-cover">
+                    <img src="/api/thumbnails?id=${video.id}" alt="${video.title}" class="w-full h-full object-cover">
                 </div>
                 <div class="p-4">
                     <h3 class="font-semibold text-gray-800">${video.title}</h3>
@@ -208,4 +208,4 @@ async function initializeWithRetry() {
     }
 }
 
-initializeWithRetry(); 
+initializeWithRetry();
