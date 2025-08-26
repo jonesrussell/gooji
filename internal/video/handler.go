@@ -67,7 +67,7 @@ func (h *Handler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("Serving home page")
 	h.logger.Debug("Available templates: %v", len(h.templates))
 
-	if err := h.templates["home"].ExecuteTemplate(w, "base.html", map[string]interface{}{
+	if err := h.templates["index"].ExecuteTemplate(w, "index.html", map[string]interface{}{
 		"Page":         "home",
 		"IsRecordPage": false,
 	}); err != nil {
@@ -314,6 +314,11 @@ func parseTemplates() (map[string]*template.Template, error) {
 		return nil, fmt.Errorf("failed to parse editor template: %w", err)
 	}
 
+	indexTemplate, err := template.ParseFiles("web/templates/index.html")
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse index template: %w", err)
+	}
+
 	// Create a template map for easy access
 	templates := map[string]*template.Template{
 		"home":        homeTemplate,
@@ -321,6 +326,7 @@ func parseTemplates() (map[string]*template.Template, error) {
 		"gallery":     galleryTemplate,
 		"editor":      editorTemplate,
 		"camera-test": cameraTestTemplate,
+		"index":       indexTemplate,
 	}
 
 	return templates, nil

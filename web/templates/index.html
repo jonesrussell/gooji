@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="/static/css/style.css" rel="stylesheet">
 </head>
+
 <body class="bg-gray-100">
     <div class="min-h-screen flex flex-col">
         <!-- Header -->
@@ -17,27 +19,67 @@
 
         <!-- Main Content -->
         <main class="flex-grow container mx-auto p-4">
-            <div class="text-center py-12">
-                <h1 class="text-4xl font-bold text-gray-800 mb-4">Welcome to Gooji</h1>
-                <p class="text-xl text-gray-600 mb-8">Share your Ojibwe language and culture through video</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Record a Video</h2>
-                        <p class="text-gray-600 mb-4">Share your knowledge, stories, or language lessons through video.</p>
-                        <a href="/record" class="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                            Start Recording
+            <!-- Recording Controls Section -->
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-lg shadow-lg mb-6">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold mb-4">Share Your Ojibwe Knowledge</h2>
+                    <p class="text-xl mb-6">Record videos to teach language, share stories, or preserve cultural
+                        traditions</p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="/record"
+                            class="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                            🎥 Record Your Own Video
                         </a>
-                    </div>
-                    
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h2 class="text-2xl font-semibold text-blue-600 mb-4">Browse Gallery</h2>
-                        <p class="text-gray-600 mb-4">Watch and learn from videos shared by the community.</p>
-                        <a href="/gallery" class="inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                            View Gallery
+                        <a href="/camera-test"
+                            class="inline-block bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                            📷 Test Camera
                         </a>
                     </div>
                 </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-grow">
+                        <input type="text" id="searchInput" placeholder="Search videos..."
+                            class="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex gap-4">
+                        <select id="tagFilter"
+                            class="px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Tags</option>
+                            <option value="language">Language</option>
+                            <option value="culture">Culture</option>
+                            <option value="story">Story</option>
+                        </select>
+                        <select id="sortBy"
+                            class="px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="title">Title</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Grid -->
+            <div id="videoGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Videos will be loaded here dynamically -->
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="hidden text-center py-8">
+                <div
+                    class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent">
+                </div>
+            </div>
+
+            <!-- Load More Button -->
+            <div class="text-center mt-8">
+                <button id="loadMoreBtn" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                    Load More
+                </button>
             </div>
         </main>
 
@@ -47,6 +89,33 @@
         </footer>
     </div>
 
-    <script src="/static/js/app.js"></script>
+    <!-- Video Modal -->
+    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg max-w-4xl w-full mx-4">
+            <div class="p-4 border-b">
+                <div class="flex justify-between items-center">
+                    <h2 id="modalTitle" class="text-xl font-semibold"></h2>
+                    <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="aspect-w-16 aspect-h-9">
+                    <video id="modalVideo" class="w-full h-full" controls></video>
+                </div>
+                <div class="mt-4">
+                    <p id="modalDescription" class="text-gray-600"></p>
+                    <div id="modalTags" class="mt-2 flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/gallery.js"></script>
 </body>
-</html> 
+
+</html>

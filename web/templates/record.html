@@ -1,5 +1,90 @@
 {{define "content"}}
-<div class="max-w-4xl mx-auto">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">Record Your Video</h1>
+<div class="max-w-6xl mx-auto">
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">Record Your Video</h1>
+        <p class="text-xl text-gray-600">Share your Ojibwe language and culture through video</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Recording Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Camera & Recording</h2>
+
+            <!-- Camera Preview -->
+            <div class="mb-6">
+                <video id="preview" class="w-full aspect-video bg-gray-900 rounded-lg" autoplay muted
+                    playsinline></video>
+            </div>
+
+            <!-- Recording Controls -->
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <button id="recordBtn"
+                    class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                    🎥 Start Recording
+                </button>
+                <button id="stopBtn"
+                    class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                    ⏹️ Stop Recording
+                </button>
+            </div>
+
+            <!-- Upload Form -->
+            <form id="uploadForm" class="space-y-4">
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Video Title</label>
+                    <input type="text" id="title" name="title" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter a descriptive title for your video">
+                </div>
+
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea id="description" name="description" rows="3" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Describe what your video is about"></textarea>
+                </div>
+
+                <div>
+                    <label for="tags" class="block text-sm font-medium text-gray-700 mb-2">Tags
+                        (comma-separated)</label>
+                    <input type="text" id="tags" name="tags"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="language, culture, story, etc.">
+                </div>
+
+                <button id="uploadBtn" type="submit"
+                    class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                    📤 Upload Video
+                </button>
+            </form>
+        </div>
+
+        <!-- Recent Recordings Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Recent Recordings</h2>
+            <div id="recordingsList" class="space-y-4">
+                <!-- Recordings will be loaded here dynamically -->
+                <div class="text-center text-gray-500 py-8">
+                    <div class="text-4xl mb-2">📹</div>
+                    <p>No recordings yet. Start recording to see your videos here!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-blue-800 mb-3">📋 Recording Tips</h3>
+        <ul class="text-blue-700 space-y-2">
+            <li>• Ensure good lighting and clear audio for the best quality</li>
+            <li>• Speak clearly and at a moderate pace</li>
+            <li>• Consider using Ojibwe language when possible</li>
+            <li>• Keep videos focused on a single topic or lesson</li>
+            <li>• Test your camera and microphone before recording</li>
+        </ul>
+    </div>
 </div>
 {{end}}

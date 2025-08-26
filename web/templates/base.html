@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="/static/css/style.css" rel="stylesheet">
 </head>
+
 <body class="bg-gray-100 min-h-screen">
     <nav class="bg-blue-600 text-white p-4">
         <div class="container mx-auto flex justify-between items-center">
@@ -33,10 +35,16 @@
     {{if not .IsRecordPage}}
     <script src="/static/js/app.js"></script>
     {{end}}
-    
+
     <!-- Only load camera-test.js on camera test page -->
     {{if eq .Page "camera-test"}}
     <script src="/static/js/camera-test.js"></script>
     {{end}}
+
+    <!-- Load record.js on record page -->
+    {{if eq .Page "record"}}
+    <script src="/static/js/record.js"></script>
+    {{end}}
 </body>
-</html> 
+
+</html>
