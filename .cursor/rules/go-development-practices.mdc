@@ -1,0 +1,33 @@
+# Go Development Practices
+
+## 🎯 **Development Workflow**
+- **Always use `task dev` for development** (not `go run main.go`)
+- **Use `task run` for production testing**
+- **Run `task lint` before committing** to ensure code quality
+
+## 🏗️ **Project Architecture**
+- **Entry Point**: [main.go](mdc:main.go) handles HTTP server setup and routing
+- **Internal Packages**: Core logic goes in `internal/` directory
+- **Reusable Packages**: Shared utilities go in `pkg/` directory
+- **Configuration**: Use [internal/config](mdc:internal/config) package for app settings
+
+## 📝 **Code Organization**
+- **HTTP Routes**: Defined in [main.go](mdc:main.go) with middleware chaining
+- **Video Processing**: Handled by [internal/video](mdc:internal/video) package
+- **Middleware**: Authentication, logging, CORS in [internal/middleware](mdc:internal/middleware)
+- **Error Handling**: Use [internal/errors](mdc:internal/errors) package for consistent error types
+
+## 🛠️ **Dependencies & Tools**
+- **Go Version**: 1.24+ (specified in [go.mod](mdc:go.mod))
+- **Development**: Air for hot reload (managed via go.mod)
+- **Linting**: Modern Go tools (staticcheck, govulncheck) via `task lint`
+- **Testing**: Use `task test` for comprehensive testing
+
+## 🔧 **Configuration Management**
+- **Config File**: [config/config.json](mdc:config/config.json)
+- **Environment**: Support for APP_DEBUG, APP_NAME environment variables
+- **Storage**: Configurable paths for videos, logs, and thumbnails
+description:
+globs:
+alwaysApply: true
+---

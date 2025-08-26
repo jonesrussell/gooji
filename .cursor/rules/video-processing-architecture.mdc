@@ -1,0 +1,48 @@
+# Video Processing Architecture
+
+## 🎬 **Core Components**
+- **FFmpeg Processor**: [pkg/ffmpeg/](mdc:pkg/ffmpeg/) - Handles video processing operations
+- **Video Handler**: [internal/video/](mdc:internal/video/) - Manages video operations and HTTP endpoints
+- **Storage Management**: Configurable paths for videos, thumbnails, and logs
+
+## 🔄 **Video Processing Flow**
+1. **Recording**: Web interface captures video via browser APIs
+2. **Upload**: Video sent to `/api/videos` endpoint
+3. **Processing**: FFmpeg handles video conversion, compression, and thumbnail generation
+4. **Storage**: Processed videos stored in configurable storage directory
+5. **Thumbnails**: Automatic thumbnail generation for video previews
+
+## 🛠️ **FFmpeg Integration**
+- **Processor**: [pkg/ffmpeg/](mdc:pkg/ffmpeg/) package provides Go interface to FFmpeg
+- **Configuration**: FFmpeg path configurable via [config/config.json](mdc:config/config.json)
+- **Operations**: Video conversion, compression, thumbnail extraction, format detection
+- **Error Handling**: Graceful fallback when FFmpeg operations fail
+
+## 📁 **Storage Structure**
+- **Videos**: Raw and processed video files
+- **Thumbnails**: Generated preview images
+- **Logs**: Processing logs and application logs
+- **Configuration**: App settings and FFmpeg parameters
+
+## 🌐 **API Endpoints**
+- **`POST /api/videos`** - Upload new video
+- **`GET /api/videos`** - List all videos
+- **`GET /api/videos/{id}`** - Get specific video details
+- **`GET /api/thumbnails/{id}`** - Get video thumbnail
+- **`DELETE /api/videos/{id}`** - Remove video
+
+## 🔧 **Configuration Options**
+- **FFmpeg Path**: Customizable FFmpeg binary location
+- **Storage Paths**: Configurable directories for different file types
+- **Processing Options**: Video quality, format, and compression settings
+- **Logging**: Detailed logging for debugging video processing issues
+
+## 📊 **Performance Considerations**
+- **Async Processing**: Video processing runs in background goroutines
+- **Memory Management**: Efficient handling of large video files
+- **Error Recovery**: Graceful handling of processing failures
+- **Resource Monitoring**: Track processing time and resource usage
+description:
+globs:
+alwaysApply: true
+---

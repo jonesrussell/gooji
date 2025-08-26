@@ -1,0 +1,35 @@
+# Frontend Development Practices
+
+## 🎯 **Template Structure**
+- **Main Template**: [web/templates/index.html](mdc:web/templates/index.html) - Home page with video recording interface
+- **Static Assets**: CSS, JS, and images in [web/static/](mdc:web/static/) directory
+- **Styling**: Uses Tailwind CSS classes for modern, responsive design
+
+## 🏗️ **Page Routes**
+- **Home**: `/` - Main video recording interface
+- **Record**: `/record` - Video recording page
+- **Edit**: `/edit/{id}` - Video editing interface
+- **Gallery**: `/gallery` - Video gallery and management
+- **API Endpoints**: `/api/videos`, `/api/thumbnails` for backend communication
+
+## 🎨 **UI Components**
+- **Video Recording**: Camera interface with start/stop controls
+- **Video Player**: Embedded video playback with controls
+- **Thumbnail Generation**: Automatic thumbnail creation for videos
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+
+## 🔧 **Integration Points**
+- **Backend API**: Video upload, processing, and management via HTTP endpoints
+- **FFmpeg Integration**: Video processing handled by Go backend
+- **File Storage**: Videos stored in configurable storage directory
+- **Real-time Updates**: Web interface updates based on processing status
+
+## 📱 **User Experience**
+- **Modern Interface**: Clean, intuitive design with Tailwind CSS
+- **Video Controls**: Play, pause, seek, and download functionality
+- **Responsive Layout**: Works on desktop and mobile devices
+- **Error Handling**: User-friendly error messages and status updates
+description:
+globs:
+alwaysApply: true
+---

@@ -1,0 +1,45 @@
+# Task Management & Development Workflow
+
+## 🎯 **Primary Development Commands**
+- **`task dev`** - Start development server with Air hot reload (PREFERRED for development)
+- **`task run`** - Start production server (use for testing production behavior)
+- **`task build`** - Build binary to `bin/` directory
+- **`task test`** - Run comprehensive tests with race detection and coverage
+
+## 🛠️ **Code Quality Tasks**
+- **`task lint`** - Run modern Go linting tools (go vet, staticcheck, govulncheck)
+- **`task format`** - Format Go code with `go fmt`
+- **`task security-scan`** - Run security vulnerability scanning
+- **`task tidy`** - Clean up Go modules and verify dependencies
+
+## 🔧 **Environment Management**
+- **`task setup`** - Set up complete development environment
+- **`task check-env`** - Validate development environment setup
+- **`task check-ffmpeg`** - Verify FFmpeg installation and version
+- **`task install-tools`** - Install required development tools
+
+## 📦 **Dependency Management**
+- **`task update-deps`** - Update all Go dependencies
+- **`task check-deps`** - Check for outdated dependencies
+- **`task verify-deps`** - Verify dependency integrity
+- **`task clean`** - Clean build artifacts and temporary files
+
+## 🐳 **Docker Operations**
+- **`task docker-build`** - Build Docker image
+- **`task docker-run`** - Run Docker container with volume mounting
+
+## 📋 **Task Configuration**
+- **Taskfile**: [Taskfile.yml](mdc:Taskfile.yml) - Central task definitions
+- **Variables**: BINARY_NAME, GO_VERSION, FFMPEG_VERSION defined at top
+- **Dependencies**: Tasks can depend on other tasks for proper execution order
+- **Cross-platform**: Tasks work on Linux, macOS, and Windows
+
+## 🚀 **Development Best Practices**
+1. **Always use `task dev` for development** - provides hot reload
+2. **Run `task lint` before committing** - ensures code quality
+3. **Use `task test` regularly** - maintains test coverage
+4. **Check environment with `task check-env`** - validates setup
+description:
+globs:
+alwaysApply: true
+---
