@@ -7,41 +7,122 @@
     <title>Gooji - Ojibwe Language & Culture Video Kiosk</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="/static/css/style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
-<body class="bg-gray-100 min-h-screen">
-    <nav class="bg-blue-600 text-white p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="/" class="text-2xl font-bold">Gooji</a>
-            <div class="space-x-4">
-                <a href="/" class="hover:text-blue-200">Home</a>
-                <a href="/record" class="hover:text-blue-200">Record</a>
-                <a href="/gallery" class="hover:text-blue-200">Gallery</a>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen font-['Inter']">
+    <!-- Modern Navigation -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a href="/" class="flex items-center space-x-3 group">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                        <span class="text-white font-bold text-xl">G</span>
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold text-gray-900">Gooji</span>
+                        <span class="block text-xs text-gray-500 -mt-1">Ojibwe Culture</span>
+                    </div>
+                </a>
+
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/"
+                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group">
+                        Home
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                    <a href="/record"
+                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group">
+                        Record
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                    <a href="/gallery"
+                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group">
+                        Gallery
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button type="button"
+                        class="text-gray-700 hover:text-indigo-600 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                        id="mobileMenuBtn">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div class="md:hidden hidden" id="mobileMenu">
+                <div class="py-4 space-y-3 border-t border-gray-200">
+                    <a href="/"
+                        class="block text-gray-700 hover:text-indigo-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">Home</a>
+                    <a href="/record"
+                        class="block text-gray-700 hover:text-indigo-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">Record</a>
+                    <a href="/gallery"
+                        class="block text-gray-700 hover:text-indigo-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">Gallery</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <main class="container mx-auto p-4">
+    <!-- Main Content -->
+    <main class="flex-grow">
         {{template "content" .}}
     </main>
 
-    <footer class="bg-gray-800 text-white p-4 mt-8">
-        <div class="container mx-auto text-center">
-            <p>Gooji - Ojibwe Language & Culture Video Kiosk</p>
+    <!-- Modern Footer -->
+    <footer class="bg-gray-900 text-white py-16 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h3 class="text-2xl font-bold mb-4">Gooji</h3>
+                <p class="text-gray-300 mb-6 max-w-2xl mx-auto">
+                    Dedicated to preserving and sharing the rich cultural heritage of the Ojibwe people through modern
+                    technology and storytelling.
+                </p>
+                <div class="border-t border-gray-800 pt-8">
+                    <p class="text-gray-400">
+                        Created for Sagamok Anishnawbek First Nation • Honoring our ancestors, preserving our future
+                    </p>
+                </div>
+            </div>
         </div>
     </footer>
 
+    <!-- Scripts -->
     <!-- Only load app.js on pages that need it (not record page) -->
     {{if not .IsRecordPage}}
     <script src="/static/js/app.js"></script>
     {{end}}
 
-
-
     <!-- Load record.js on record page -->
     {{if eq .Page "record"}}
     <script src="/static/js/record.js"></script>
     {{end}}
+
+    <!-- Mobile menu toggle -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', function () {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
