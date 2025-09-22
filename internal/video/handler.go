@@ -99,6 +99,24 @@ func (h *Handler) HandleRecord(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HandleUploadPage serves the video upload page
+func (h *Handler) HandleUploadPage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.handleMethodNotAllowed(w, r)
+		return
+	}
+
+	h.logger.Debug("Serving upload page")
+
+	if err := h.templates["upload"].ExecuteTemplate(w, "base.html", map[string]interface{}{
+		"Page":         "upload",
+		"IsRecordPage": false,
+	}); err != nil {
+		h.handleInternalError(w, r, err)
+		return
+	}
+}
+
 // HandleEdit serves the video editing page
 func (h *Handler) HandleEdit(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -328,6 +346,11 @@ func parseTemplates() (map[string]*template.Template, error) {
 		return nil, fmt.Errorf("failed to parse record template: %w", err)
 	}
 
+	uploadTemplate, err := template.Must(baseTemplate.Clone()).ParseFiles("web/templates/upload.html")
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse upload template: %w", err)
+	}
+
 	// Parse standalone templates
 	galleryTemplate, err := template.ParseFiles("web/templates/gallery.html")
 	if err != nil {
@@ -348,6 +371,7 @@ func parseTemplates() (map[string]*template.Template, error) {
 	templates := map[string]*template.Template{
 		"home":    homeTemplate,
 		"record":  recordTemplate,
+		"upload":  uploadTemplate,
 		"gallery": galleryTemplate,
 		"editor":  editorTemplate,
 		"index":   indexTemplate,

@@ -64,6 +64,7 @@ func main() {
 	// Page routes
 	mux.HandleFunc("/", handler.HandleHome)
 	mux.HandleFunc("/record", handler.HandleRecord)
+	mux.HandleFunc("/upload", handler.HandleUploadPage)
 	mux.HandleFunc("/edit/", handler.HandleEdit)
 	mux.HandleFunc("/gallery", handler.HandleGallery)
 
