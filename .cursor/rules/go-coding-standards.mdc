@@ -1,0 +1,53 @@
+---
+globs: *.go
+description: Go coding standards and best practices for Gooji
+---
+
+# Go Coding Standards & Best Practices
+
+## Code Style
+- Use `gofumpt` for formatting (configured in gopls settings)
+- Follow standard Go naming conventions
+- Use meaningful variable and function names
+- Prefer explicit error handling over panic/recover
+- Use `golangci-lint` with `--fast` flag for linting
+
+## Error Handling
+- Always handle errors explicitly - never ignore them with `_`
+- Use wrapped errors with `fmt.Errorf("context: %w", err)`
+- Define custom error types in [internal/errors/](mdc:internal/errors/) when needed
+- Log errors at appropriate levels (Error for failures, Debug for flow control)
+
+## Security Practices
+- Validate all file paths using [internal/config/config.go](mdc:internal/config/config.go) validation functions
+- Use `//nolint:gosec` comments only when path validation is proven safe
+- Sanitize user inputs before processing
+- Use secure file permissions (0o600 for files, 0o750 for directories)
+- Prevent path traversal attacks in all file operations
+
+## Package Organization
+- Keep `internal/` packages private to the module
+- Use `pkg/` for reusable components
+- Group related functionality in the same package
+- Minimize package dependencies
+- Use interfaces for testability and loose coupling
+
+## Testing
+- Write unit tests for all public functions
+- Use table-driven tests for multiple scenarios
+- Mock external dependencies (FFmpeg, file system)
+- Aim for high test coverage
+- Use `go test -race` to detect race conditions
+
+## Performance
+- Use `context.Context` for cancellation and timeouts
+- Implement graceful shutdown patterns
+- Use connection pooling for external services
+- Profile memory usage for video processing operations
+- Cache expensive operations when appropriate
+
+## Documentation
+- Document all exported functions and types
+- Use meaningful commit messages
+- Keep README and DEVELOPMENT.md updated
+- Document configuration options and environment variables

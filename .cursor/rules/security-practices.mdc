@@ -1,0 +1,66 @@
+---
+alwaysApply: true
+description: Security practices and validation guidelines
+---
+
+# Security Practices & Validation
+
+## Path Security
+All file operations must use the validation functions from [internal/config/config.go](mdc:internal/config/config.go):
+
+### Path Validation Rules
+- No empty paths allowed
+- Prevent path traversal attempts (no `..` in paths)
+- Block dangerous characters: `|`, `&`, `;`, `` ` ``, `$`, `(`, `)`, `{`, `}`, `[`, `]`, `*`, `?`, `\`
+- Ensure paths stay within current directory for config files
+- Use absolute path resolution with security checks
+
+### File Permission Standards
+- **Files**: 0o600 (owner read/write only)
+- **Directories**: 0o750 (owner read/write/execute, group read/execute)
+- **Log files**: Created with secure permissions in [internal/logger/logger.go](mdc:internal/logger/logger.go)
+
+## Input Validation
+- Validate all user inputs before processing
+- Sanitize file uploads and metadata
+- Check file types against allowed video formats
+- Limit file sizes to prevent resource exhaustion
+- Use secure temporary file handling
+
+## FFmpeg Security
+The [pkg/ffmpeg/processor.go](mdc:pkg/ffmpeg/processor.go) implements security measures:
+- Restrict FFmpeg to allowed directories only
+- Use `NewProcessorWithSecurity()` for upload operations
+- Validate all command arguments before execution
+- Prevent command injection attacks
+
+## Error Handling Security
+- Never expose internal system paths in error messages
+- Log security events at appropriate levels
+- Use generic error messages for user-facing responses
+- Implement proper error boundaries in middleware
+
+## Configuration Security
+- Validate all configuration paths on startup
+- Use environment variables for sensitive data
+- Implement secure defaults for all configuration options
+- Prevent configuration injection attacks
+
+## Logging Security
+- Log security events (failed validations, suspicious paths)
+- Use structured logging with [internal/logger/logger.go](mdc:internal/logger/logger.go)
+- Ensure log files have secure permissions
+- Prevent log injection attacks by sanitizing log data
+
+## HTTP Security
+Middleware in [internal/middleware/middleware.go](mdc:internal/middleware/middleware.go) provides:
+- CORS headers for cross-origin requests
+- Request logging for audit trails
+- Panic recovery to prevent information disclosure
+- Proper error response formatting
+
+## Code Security Patterns
+- Use `//nolint:gosec` comments only when path validation is proven safe
+- Implement defense in depth with multiple validation layers
+- Use secure coding practices for file operations
+- Regular security scanning with `task security-scan`

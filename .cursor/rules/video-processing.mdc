@@ -1,0 +1,78 @@
+---
+globs: internal/video/*.go,pkg/ffmpeg/*.go
+description: Video processing and FFmpeg integration guidelines
+---
+
+# Video Processing & FFmpeg Integration
+
+## Video Processing Architecture
+The video processing follows a layered architecture:
+
+### Handler Layer ([internal/video/handler.go](mdc:internal/video/handler.go))
+- HTTP request handling and response formatting
+- Template rendering for web interface
+- Input validation and sanitization
+- Error handling and user feedback
+
+### Service Layer ([internal/video/service.go](mdc:internal/video/service.go))
+- Business logic for video operations
+- Coordinate between repository and FFmpeg processor
+- Handle video metadata and processing workflows
+- Implement processing pipelines
+
+### Repository Layer ([internal/video/repository.go](mdc:internal/video/repository.go))
+- File system operations and storage management
+- Video metadata persistence
+- Thumbnail generation and caching
+- Storage directory management
+
+## FFmpeg Integration ([pkg/ffmpeg/processor.go](mdc:pkg/ffmpeg/processor.go))
+### Security-First Design
+- Use `NewProcessorWithSecurity()` for upload operations
+- Restrict FFmpeg to allowed directories only
+- Validate all command arguments before execution
+- Prevent command injection and path traversal
+
+### Processor Types
+- **Secure Processor**: Limited to uploads directory
+- **Thumbnail Processor**: Can access base storage directory
+- **Standard Processor**: General purpose (use with caution)
+
+## Video Processing Workflows
+### Upload Processing
+1. Validate file type and size
+2. Store in secure uploads directory
+3. Generate metadata and thumbnails
+4. Process video with FFmpeg
+5. Clean up temporary files
+
+### Thumbnail Generation
+1. Extract frames at specific timestamps
+2. Resize and optimize thumbnails
+3. Store in dedicated thumbnails directory
+4. Cache thumbnails for performance
+
+### Video Conversion
+1. Validate input format
+2. Apply security restrictions
+3. Execute FFmpeg commands safely
+4. Handle processing errors gracefully
+
+## Error Handling
+- Custom error types in [internal/video/errors.go](mdc:internal/video/errors.go)
+- Graceful degradation for processing failures
+- Proper cleanup of temporary files
+- User-friendly error messages
+
+## Performance Considerations
+- Use background processing for large files
+- Implement progress tracking for long operations
+- Cache thumbnails and metadata
+- Optimize FFmpeg parameters for speed vs quality
+- Monitor memory usage during processing
+
+## Configuration
+- FFmpeg path configurable via [config/config.json](mdc:config/config.json)
+- Video size limits and allowed types
+- Storage paths for different file types
+- Processing timeouts and resource limits

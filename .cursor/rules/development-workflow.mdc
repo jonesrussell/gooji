@@ -1,0 +1,60 @@
+---
+alwaysApply: true
+description: Development workflow and tooling guidelines
+---
+
+# Development Workflow & Tooling
+
+## Development Environment
+- **Go Version**: 1.24 (as specified in [go.mod](mdc:go.mod))
+- **Hot Reloading**: Use `task dev` with Air for development [[memory:2280436]]
+- **Linting**: golangci-lint with --fast flag and lintOnSave at package level [[memory:2319857]]
+- **Formatting**: gopls with gofumpt formatting, unusedparams and shadow analyses enabled [[memory:2319857]]
+
+## Task Commands
+Use the [Taskfile.yml](mdc:Taskfile.yml) for all development operations:
+
+### Development
+- `task dev` - Start development server with hot reload (Air)
+- `task run` - Start production server
+- `task build` - Build the application
+- `task test` - Run tests with coverage
+- `task test-coverage` - Generate coverage report
+
+### Code Quality
+- `task lint` - Run modern Go linting tools (go vet, staticcheck, govulncheck)
+- `task format` - Format Go code with gofmt
+- `task security-scan` - Run security vulnerability scan
+
+### Environment Management
+- `task setup` - Set up development environment
+- `task check-env` - Check development environment
+- `task check-ffmpeg` - Check FFmpeg installation
+- `task install-tools` - Install development tools
+
+## Modern Go Tooling
+The project uses modern Go tools instead of external dependencies:
+- **go vet** - Built-in Go static analysis
+- **staticcheck** - Advanced static analysis
+- **govulncheck** - Security vulnerability scanning
+- **Air** - Hot reload for development
+
+## Development Best Practices
+1. **Setup**: Run `task setup` once to configure environment
+2. **Development**: Use `task dev` for hot reload during development
+3. **Testing**: Run `task test` before commits
+4. **Linting**: Run `task lint` for code quality checks
+5. **Security**: Run `task security-scan` regularly
+6. **Dependencies**: Use `task update-deps` and `task verify-deps`
+
+## Configuration Management
+- Configuration is loaded from [config/config.json](mdc:config/config.json)
+- Environment variables override config values (GOOJI_PORT, APP_DEBUG, etc.)
+- All paths are validated for security using [internal/config/config.go](mdc:internal/config/config.go)
+- Storage directories are created automatically on startup
+
+## File Organization
+- Keep related functionality in the same package
+- Use clear separation between handlers, services, and repositories
+- Place reusable components in `pkg/` directory
+- Keep configuration and static assets in dedicated directories

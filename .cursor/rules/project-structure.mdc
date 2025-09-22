@@ -1,0 +1,41 @@
+---
+alwaysApply: true
+description: Gooji project structure and architecture guidelines
+---
+
+# Gooji Project Structure & Architecture
+
+## Project Overview
+Gooji is a Go-based video recording and processing application with a web interface. The main entry point is [main.go](mdc:main.go), which loads configuration from [config/config.json](mdc:config/config.json) and initializes the video processing system.
+
+## Directory Structure
+- `main.go` - Application entry point and server setup
+- `internal/` - Private application code (not importable by other modules)
+  - `config/` - Configuration management with security validation
+  - `logger/` - Structured logging with Zap
+  - `middleware/` - HTTP middleware (CORS, logging, recovery)
+  - `video/` - Core video processing logic (handler, service, repository)
+  - `ui/` - User interface components
+  - `errors/` - Application-specific error types
+- `pkg/` - Public library code (importable by other modules)
+  - `ffmpeg/` - FFmpeg integration and processing
+- `web/` - Static web assets and templates
+- `config/` - Configuration files
+- `storage/` - File storage directories (uploads, thumbnails, logs, metadata)
+- `scripts/` - Development and deployment scripts
+- `bin/` - Build artifacts
+
+## Architecture Patterns
+- **Clean Architecture**: Separation of concerns with handler → service → repository layers
+- **Dependency Injection**: Services receive dependencies through constructors
+- **Interface-based Design**: Services depend on interfaces, not concrete types
+- **Security First**: Path validation, input sanitization, and secure file handling
+- **Configuration Management**: JSON config with environment variable overrides
+
+## Key Components
+- **Video Handler**: HTTP request handling and template rendering
+- **Video Service**: Business logic for video processing
+- **Video Repository**: Data persistence and file management
+- **FFmpeg Processor**: External tool integration for video operations
+- **Logger**: Structured logging with rotation and security checks
+- **Middleware**: Cross-cutting concerns (CORS, logging, recovery)
