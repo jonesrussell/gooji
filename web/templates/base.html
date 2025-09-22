@@ -30,22 +30,25 @@
                 <!-- Navigation Links -->
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="/"
-                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group">
+                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group {{if eq .Page "
+                        home"}}text-indigo-600{{end}}">
                         Home
-                        <span
-                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
+                        <span class="absolute -bottom-1 left-0 {{if eq .Page " home"}}w-full{{else}}w-0{{end}} h-0.5
+                            bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
                     </a>
                     <a href="/record"
-                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group">
+                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group {{if eq .Page "
+                        record"}}text-indigo-600{{end}}">
                         Record
-                        <span
-                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
+                        <span class="absolute -bottom-1 left-0 {{if eq .Page " record"}}w-full{{else}}w-0{{end}} h-0.5
+                            bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
                     </a>
                     <a href="/gallery"
-                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group">
+                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group {{if eq .Page "
+                        gallery"}}text-indigo-600{{end}}">
                         Gallery
-                        <span
-                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
+                        <span class="absolute -bottom-1 left-0 {{if eq .Page " gallery"}}w-full{{else}}w-0{{end}} h-0.5
+                            bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
                     </a>
                 </div>
 
@@ -65,12 +68,15 @@
             <!-- Mobile Navigation -->
             <div class="md:hidden hidden" id="mobileMenu">
                 <div class="py-4 space-y-3 border-t border-gray-200">
-                    <a href="/"
-                        class="block text-gray-700 hover:text-indigo-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">Home</a>
-                    <a href="/record"
-                        class="block text-gray-700 hover:text-indigo-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">Record</a>
-                    <a href="/gallery"
-                        class="block text-gray-700 hover:text-indigo-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">Gallery</a>
+                    <a href="/" class="block {{if eq .Page " home"}}text-indigo-600 bg-indigo-50{{else}}text-gray-700
+                        hover:text-indigo-600 hover:bg-gray-50{{end}} font-medium py-2 px-3 rounded-lg transition-colors
+                        duration-200">Home</a>
+                    <a href="/record" class="block {{if eq .Page " record"}}text-indigo-600
+                        bg-indigo-50{{else}}text-gray-700 hover:text-indigo-600 hover:bg-gray-50{{end}} font-medium py-2
+                        px-3 rounded-lg transition-colors duration-200">Record</a>
+                    <a href="/gallery" class="block {{if eq .Page " gallery"}}text-indigo-600
+                        bg-indigo-50{{else}}text-gray-700 hover:text-indigo-600 hover:bg-gray-50{{end}} font-medium py-2
+                        px-3 rounded-lg transition-colors duration-200">Gallery</a>
                 </div>
             </div>
         </div>

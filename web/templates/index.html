@@ -44,8 +44,122 @@
         </div>
     </div>
 
+    <!-- Navigation -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a href="/" class="flex items-center space-x-3 group">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                        <span class="text-white font-bold text-xl">G</span>
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold text-gray-900">Gooji</span>
+                        <span class="block text-xs text-gray-500 -mt-1">Ojibwe Culture</span>
+                    </div>
+                </a>
+
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/"
+                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group">
+                        Home
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                    <a href="/record"
+                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group">
+                        Record
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                    <a href="/gallery"
+                        class="text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200 relative group">
+                        Gallery
+                        <span
+                            class="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button type="button"
+                        class="text-gray-700 hover:text-indigo-600 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                        id="mobileMenuBtn">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div class="md:hidden hidden" id="mobileMenu">
+                <div class="py-4 space-y-3 border-t border-gray-200">
+                    <a href="/"
+                        class="block text-gray-700 hover:text-indigo-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">Home</a>
+                    <a href="/record"
+                        class="block text-gray-700 hover:text-indigo-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">Record</a>
+                    <a href="/gallery"
+                        class="block text-gray-700 hover:text-indigo-600 font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">Gallery</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Features Section -->
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Preserving Our Heritage</h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
+                Gooji empowers the Sagamok Anishnawbek community to record, share, and preserve
+                Ojibwe language and cultural knowledge for future generations.
+            </p>
+
+            <!-- Statistics -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                <div class="stats-card bg-white rounded-2xl p-8 shadow-lg">
+                    <div
+                        class="icon-container w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-3xl font-bold gradient-text-primary mb-2">150+</h3>
+                    <p class="text-gray-600">Cultural Videos</p>
+                </div>
+                <div class="stats-card bg-white rounded-2xl p-8 shadow-lg">
+                    <div
+                        class="icon-container w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-3xl font-bold gradient-text-primary mb-2">500+</h3>
+                    <p class="text-gray-600">Community Members</p>
+                </div>
+                <div class="stats-card bg-white rounded-2xl p-8 shadow-lg">
+                    <div
+                        class="icon-container w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-3xl font-bold gradient-text-primary mb-2">50+</h3>
+                    <p class="text-gray-600">Language Lessons</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Search and Filter Section -->
         <div class="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100">
             <div class="flex flex-col lg:flex-row gap-6">
@@ -89,7 +203,7 @@
         </div>
 
         <!-- Video Grid -->
-        <div id="videoGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+        <div id="videoGrid" class="video-grid mb-8">
             <!-- Videos will be loaded here dynamically -->
         </div>
 
@@ -102,7 +216,7 @@
         </div>
 
         <!-- Load More Button -->
-        <div class="text-center">
+        <div class="text-center mb-16">
             <button id="loadMoreBtn"
                 class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transform hover:-translate-y-1 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,6 +224,170 @@
                 </svg>
                 Load More Stories
             </button>
+        </div>
+
+        <!-- Features Section -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-16 border border-gray-100">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Why Choose Gooji?</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Our platform is designed specifically for Indigenous communities to preserve and share cultural
+                    knowledge.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="feature-card text-center">
+                    <div
+                        class="icon-container w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Language Preservation</h3>
+                    <p class="text-gray-600">Record and preserve Ojibwe language lessons, stories, and conversations for
+                        future generations.</p>
+                </div>
+
+                <div class="feature-card text-center">
+                    <div
+                        class="icon-container w-20 h-20 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Community Sharing</h3>
+                    <p class="text-gray-600">Share cultural knowledge, traditions, and stories within the Sagamok
+                        Anishnawbek community.</p>
+                </div>
+
+                <div class="feature-card text-center">
+                    <div
+                        class="icon-container w-20 h-20 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Easy Recording</h3>
+                    <p class="text-gray-600">Simple, user-friendly recording interface that works on any device with a
+                        camera.</p>
+                </div>
+
+                <div class="feature-card text-center">
+                    <div
+                        class="icon-container w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Secure Storage</h3>
+                    <p class="text-gray-600">Your cultural content is safely stored and protected with
+                        community-controlled access.</p>
+                </div>
+
+                <div class="feature-card text-center">
+                    <div
+                        class="icon-container w-20 h-20 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Easy Discovery</h3>
+                    <p class="text-gray-600">Search and filter videos by language, culture, stories, and historical
+                        knowledge.</p>
+                </div>
+
+                <div class="feature-card text-center">
+                    <div
+                        class="icon-container w-20 h-20 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Fast Access</h3>
+                    <p class="text-gray-600">Quick loading and streaming of cultural content with optimized video
+                        delivery.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-8 mb-16 border border-indigo-200">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-6">About Gooji</h2>
+                    <p class="text-lg text-gray-700 mb-6">
+                        Gooji is a cultural preservation platform created specifically for the Sagamok Anishnawbek First
+                        Nation.
+                        Our mission is to empower community members to record, share, and preserve Ojibwe language and
+                        cultural knowledge
+                        through modern video technology.
+                    </p>
+                    <p class="text-lg text-gray-700 mb-8">
+                        Every video recorded helps ensure that the rich traditions, stories, and language of the Ojibwe
+                        people
+                        continue to thrive for generations to come.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="/record"
+                            class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transform hover:-translate-y-1 transition-all duration-200 shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            Start Recording
+                        </a>
+                        <a href="/gallery"
+                            class="inline-flex items-center justify-center px-6 py-3 bg-white text-indigo-600 font-semibold rounded-xl border-2 border-indigo-200 hover:bg-indigo-50 transform hover:-translate-y-1 transition-all duration-200 shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            Browse Videos
+                        </a>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="bg-white rounded-2xl p-8 shadow-xl border border-gray-100">
+                        <div class="text-center">
+                            <div
+                                class="w-24 h-24 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-4">Join Our Mission</h3>
+                            <p class="text-gray-600 mb-6">
+                                Help preserve Ojibwe culture and language by sharing your knowledge through video.
+                            </p>
+                            <div class="grid grid-cols-2 gap-4 text-center">
+                                <div>
+                                    <div class="text-2xl font-bold text-indigo-600 mb-1">24/7</div>
+                                    <div class="text-sm text-gray-600">Access</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-indigo-600 mb-1">Free</div>
+                                    <div class="text-sm text-gray-600">Platform</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -184,6 +462,36 @@
                     modal.classList.add('hidden');
                 }, 200);
             };
+
+            // Mobile menu functionality
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', function () {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+
+            // Close modal when clicking outside
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) {
+                    window.closeVideoModal();
+                }
+            });
+
+            // Close modal with escape key
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                    window.closeVideoModal();
+                }
+            });
+
+            // Close modal button
+            const closeModalBtn = document.getElementById('closeModal');
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', window.closeVideoModal);
+            }
         });
     </script>
 </body>
