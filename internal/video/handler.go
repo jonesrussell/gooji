@@ -131,9 +131,6 @@ func (h *Handler) HandleGallery(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
-
-
 // HandleHealth provides system health information
 func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -162,6 +159,8 @@ func (h *Handler) HandleVideo(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		h.GetVideo(w, r)
+	case http.MethodDelete:
+		h.DeleteVideo(w, r)
 	default:
 		h.handleMethodNotAllowed(w, r)
 	}
@@ -227,6 +226,39 @@ func (h *Handler) GetVideo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.ServeFile(w, r, videoPath)
+}
+
+// DeleteVideo deletes a video and its associated files
+func (h *Handler) DeleteVideo(w http.ResponseWriter, r *http.Request) {
+	// Extract ID from path: /api/videos/{id}
+	pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+	if len(pathParts) < 3 || pathParts[0] != "api" || pathParts[1] != "videos" {
+		h.handleValidationError(w, r, "Invalid video endpoint", nil)
+		return
+	}
+
+	id := pathParts[2]
+	if id == "" {
+		h.handleValidationError(w, r, "Missing video ID", nil)
+		return
+	}
+
+	// Check if video exists before attempting deletion
+	// Note: We'll let the service layer handle the existence check
+	// as it's already implemented in the DeleteVideo method
+
+	// Delete video through service
+	if err := h.service.DeleteVideo(r.Context(), id); err != nil {
+		h.handleServiceError(w, r, err)
+		return
+	}
+
+	// Return success response
+	response := map[string]string{
+		"message": "Video deleted successfully",
+		"id":      id,
+	}
+	h.writeJSONResponse(w, response)
 }
 
 // GetThumbnail returns a video thumbnail
@@ -296,8 +328,6 @@ func parseTemplates() (map[string]*template.Template, error) {
 		return nil, fmt.Errorf("failed to parse record template: %w", err)
 	}
 
-
-
 	// Parse standalone templates
 	galleryTemplate, err := template.ParseFiles("web/templates/gallery.html")
 	if err != nil {
@@ -316,11 +346,11 @@ func parseTemplates() (map[string]*template.Template, error) {
 
 	// Create a template map for easy access
 	templates := map[string]*template.Template{
-		"home":        homeTemplate,
-		"record":      recordTemplate,
-		"gallery":     galleryTemplate,
-		"editor":      editorTemplate,
-		"index":       indexTemplate,
+		"home":    homeTemplate,
+		"record":  recordTemplate,
+		"gallery": galleryTemplate,
+		"editor":  editorTemplate,
+		"index":   indexTemplate,
 	}
 
 	return templates, nil

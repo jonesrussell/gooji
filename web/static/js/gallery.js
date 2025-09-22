@@ -63,6 +63,7 @@ async function loadVideos(page = 1, append = false) {
 function createVideoCard(video) {
     const card = document.createElement('div');
     card.className = 'group bg-white rounded-2xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 overflow-hidden border border-gray-100';
+    card.setAttribute('data-video-id', video.id);
 
     card.innerHTML = `
         <div class="relative aspect-w-16 aspect-h-9 cursor-pointer overflow-hidden">
@@ -111,12 +112,21 @@ function createVideoCard(video) {
                     </svg>
                     ${video.createdAt ? formatDate(video.createdAt) : 'Recently added'}
                 </span>
-                <span class="flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                    </svg>
-                    Video
-                </span>
+                <div class="flex items-center space-x-2">
+                    <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        Video
+                    </span>
+                    <button onclick="deleteVideo('${video.id}', '${video.title.replace(/'/g, "\\'")}')"
+                            class="flex items-center text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded transition-colors duration-200"
+                            title="Delete video">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     `;
@@ -228,6 +238,77 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// Delete video function
+async function deleteVideo(videoId, videoTitle) {
+    // Show confirmation dialog
+    const confirmed = confirm(`Are you sure you want to delete "${videoTitle}"?\n\nThis action cannot be undone.`);
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/videos/${videoId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete video');
+        }
+
+        const result = await response.json();
+        console.log('Video deleted:', result);
+
+        // Remove the video card from the UI
+        const videoCard = document.querySelector(`[data-video-id="${videoId}"]`);
+        if (videoCard) {
+            videoCard.remove();
+        } else {
+            // If we can't find the specific card, reload the videos
+            loadVideos(1);
+        }
+
+        // Show success message
+        showNotification('Video deleted successfully', 'success');
+
+    } catch (error) {
+        console.error('Error deleting video:', error);
+        showNotification('Failed to delete video. Please try again.', 'error');
+    }
+}
+
+// Show notification function
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full ${type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+            'bg-blue-500 text-white'
+        }`;
+    notification.textContent = message;
+
+    // Add to page
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
 }
 
 // Initialize

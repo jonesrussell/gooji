@@ -1,0 +1,9 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/go:1-1-bookworm
+    volumes:
+      - ..:/workspaces:cached
+    command: sleep infinity
+    user: vscode

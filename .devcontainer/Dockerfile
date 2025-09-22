@@ -1,22 +1,32 @@
 ARG VARIANT=1-1-bookworm
 FROM mcr.microsoft.com/devcontainers/go:${VARIANT}
 
-# [Optional] Uncomment this section to install additional OS packages.
+# Install OS packages in a single layer to reduce image size
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends ffmpeg
+    && apt-get -y install --no-install-recommends ffmpeg \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# [Optional] Uncomment the next lines to use go get to install anything else you need
+# Switch to vscode user for Go tool installations
 USER vscode
 
-RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest && \
-    go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest && \
+# Install Go tools - using latest versions with error handling
+RUN set -e && \
+    echo "Installing golangci-lint..." && \
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && \
+    echo "Installing migrate..." && \
+    go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest && \
+    echo "Installing templ..." && \
     go install github.com/a-h/templ/cmd/templ@latest && \
-    go install github.com/air-verse/air@latest
+    echo "Installing air..." && \
+    go install github.com/air-verse/air@latest && \
+    echo "All Go tools installed successfully"
 
-# Install dependencies and build the template package
-# RUN cd /workspaces/goforms-template && npm install && npm run build && npm link || true
+# Clean Go module cache to reduce image size
+RUN go clean -modcache
 
+# Switch back to root for any remaining system-level operations
 USER root
 
-# [Optional] Uncomment this line to install global node packages.
-# RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1ce
+# Uncomment and customize as needed:
+# RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
