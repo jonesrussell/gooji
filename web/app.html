@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gooji - Ojibwe Language & Culture</title>
+  {{ if .isDev }}
+  <script type="module" src="http://localhost:5173/@vite/client"></script>
+  <script type="module" src="http://localhost:5173/src/app.ts"></script>
+  {{ else }}
+  {{ range .cssFiles }}<link rel="stylesheet" href="/assets/{{ . }}">{{ end }}
+  {{ range .jsFiles }}<script type="module" src="/assets/{{ . }}"></script>{{ end }}
+  {{ end }}
+</head>
+<body>
+  <div id="app" data-page='{{ .page }}'></div>
+</body>
+</html>
