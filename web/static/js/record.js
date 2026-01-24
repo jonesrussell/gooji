@@ -40,8 +40,19 @@ async function initCamera() {
         console.log('Camera stream obtained successfully');
         preview.srcObject = stream;
 
+        // Function to hide overlay
+        const hideOverlay = () => {
+            const overlay = document.getElementById('cameraOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        };
+
         // Play the video stream
-        preview.play().catch(err => {
+        preview.play().then(() => {
+            console.log('Video stream playing');
+            hideOverlay();
+        }).catch(err => {
             console.error('Error playing video stream:', err);
         });
 
@@ -49,11 +60,12 @@ async function initCamera() {
         preview.onloadedmetadata = () => {
             console.log('Video metadata loaded');
             recordBtn.disabled = false;
-            // Hide the placeholder overlay when stream is active
-            const overlay = document.getElementById('cameraOverlay');
-            if (overlay) {
-                overlay.style.display = 'none';
-            }
+            hideOverlay();
+        };
+
+        // Also hide overlay when video starts playing (backup)
+        preview.onplay = () => {
+            hideOverlay();
         };
 
         // Try to use preferred MIME type, fallback to default
