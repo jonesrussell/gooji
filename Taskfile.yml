@@ -2,176 +2,97 @@ version: '3'
 
 vars:
   BINARY_NAME: gooji
-  GO_VERSION: '1.24'
-  FFMPEG_VERSION: '6.1.1'
 
 tasks:
   default:
     cmds:
       - task --list
 
-  setup:
-    desc: Set up development environment
+  dev:
+    desc: Start Go server and Vite dev server concurrently
     cmds:
-      - chmod +x scripts/*.sh
-      - ./scripts/setup.sh
+      - task: dev:frontend &
+      - APP_ENV=development VITE_DEV=true go run github.com/air-verse/air@latest
+
+  dev:frontend:
+    desc: Run Vite dev server
+    dir: web
+    cmds:
+      - npm run dev
+    ignore_error: true
 
   build:
-    desc: Build the application
+    desc: Build production binary and frontend
+    cmds:
+      - task: build:frontend
+      - task: build:backend
+
+  build:frontend:
+    desc: Build frontend for production
+    dir: web
+    cmds:
+      - npm run build
+
+  build:backend:
+    desc: Build Go binary
     cmds:
       - go build -o bin/{{.BINARY_NAME}} main.go
 
   run:
-    desc: Run the application with hot reload using Air
+    desc: Run the production binary
     cmds:
-      - go run github.com/air-verse/air@latest
-
-  dev:
-    desc: Run the application in development mode with hot reload (backend + frontend)
-    cmds:
-      - task: frontend:dev
-        background: true
-      - go run github.com/air-verse/air@latest
+      - ./bin/{{.BINARY_NAME}}
 
   test:
-    desc: Run tests with coverage
+    desc: Run all tests
     cmds:
-      - go test -v -race -cover ./...
+      - go test -v -race -cover ./internal/...
 
-  test-coverage:
-    desc: Generate test coverage report
+  test:coverage:
+    desc: Generate coverage report
     cmds:
-      - go test -coverprofile=coverage.out ./...
+      - go test -coverprofile=coverage.out ./internal/...
       - go tool cover -html=coverage.out -o coverage.html
 
   lint:
-    desc: Run modern Go linting tools
+    desc: Run linters
     cmds:
       - go vet ./...
       - go run honnef.co/go/tools/cmd/staticcheck@latest ./...
-      - go run golang.org/x/vuln/cmd/govulncheck@latest ./...
-      - go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run ./...
-
-  lint-legacy:
-    desc: Run legacy linters (if golangci-lint is installed)
-    cmds:
-      - ./scripts/lint.sh
-
-  clean:
-    desc: Clean build artifacts and temporary files
-    cmds:
-      - rm -rf bin/
-      - rm -rf logs/*
-      - rm -rf videos/*
-      - rm -f coverage.out coverage.html
-      - go clean -cache -testcache
-
-  docker-build:
-    desc: Build Docker image
-    cmds:
-      - docker build -t {{.BINARY_NAME}}:latest .
-
-  docker-run:
-    desc: Run Docker container
-    deps: [docker-build]
-    cmds:
-      - docker run -p 8080:8080 -v $(pwd)/videos:/app/videos {{.BINARY_NAME}}:latest
-
-  check-deps:
-    desc: Check for outdated dependencies
-    cmds:
-      - go list -u -m all
-
-  update-deps:
-    desc: Update dependencies
-    cmds:
-      - go get -u ./...
-      - go mod tidy
-
-  verify-deps:
-    desc: Verify dependencies and generate go.sum
-    cmds:
-      - ./scripts/verify-deps.sh
-
-  generate:
-    desc: Generate code (if any)
-    cmds:
-      - go generate ./...
-
-  install:
-    desc: Install the application
-    cmds:
-      - go install .
-
-  uninstall:
-    desc: Uninstall the application
-    cmds:
-      - rm -f $(go env GOPATH)/bin/{{.BINARY_NAME}}
-
-  check-ffmpeg:
-    desc: Check FFmpeg installation
-    cmds:
-      - ./scripts/check-ffmpeg.sh
-
-  check-env:
-    desc: Check development environment
-    cmds:
-      - ./scripts/check-env.sh
-
-  create-config:
-    desc: Create default configuration file
-    cmds:
-      - ./scripts/create-config.sh
-
-  install-tools:
-    desc: Install development tools
-    cmds:
-      - go install github.com/air-verse/air@latest
-      - go install honnef.co/go/tools/cmd/staticcheck@latest
-      - go install golang.org/x/vuln/cmd/govulncheck@latest
-
-  security-scan:
-    desc: Run security vulnerability scan
-    cmds:
-      - go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
   format:
     desc: Format Go code
     cmds:
       - go fmt ./...
 
+  migrate:data:
+    desc: Migrate JSON metadata to SQLite (one-time)
+    cmds:
+      - go run cmd/migrate/main.go
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf bin/ web/dist/ coverage.out coverage.html
+
+  setup:
+    desc: Set up development environment
+    cmds:
+      - go mod download
+      - cd web && npm install
+
+  check-ffmpeg:
+    desc: Check FFmpeg installation
+    cmds:
+      - ffmpeg -version
+
+  security-scan:
+    desc: Run security vulnerability scan
+    cmds:
+      - go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
   tidy:
     desc: Tidy Go modules
     cmds:
       - go mod tidy
       - go mod verify
-
-  frontend:dev:
-    desc: Run Vite dev server for frontend hot reload
-    cmds:
-      - npm run dev
-    dir: .
-
-  frontend:build:
-    desc: Build frontend for production
-    cmds:
-      - npm run build
-    dir: .
-
-  frontend:lint:
-    desc: Lint frontend TypeScript code
-    cmds:
-      - npm run lint
-    dir: .
-
-  frontend:type-check:
-    desc: Type check frontend TypeScript code
-    cmds:
-      - npm run type-check
-    dir: .
-
-  frontend:test:
-    desc: Run frontend tests
-    cmds:
-      - npm run test
-    dir: . 
