@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  /* Medicine wheel colors - used subtly */
+  --color-earth-black: oklch(0.15 0.01 260);
+  --color-snow-white: oklch(0.97 0.01 90);
+  --color-fire-red: oklch(0.55 0.18 25);
+  --color-sun-yellow: oklch(0.80 0.14 85);
+
+  /* Map to semantic colors */
+  --color-primary: var(--color-fire-red);
+  --color-accent: var(--color-sun-yellow);
+  --color-background: var(--color-snow-white);
+  --color-foreground: var(--color-earth-black);
+}
