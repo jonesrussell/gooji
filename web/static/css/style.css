@@ -265,7 +265,7 @@ select:focus {
 .focus-ring:focus {
     outline: 2px solid transparent;
     outline-offset: 2px;
-    box-shadow: 0 0 0 2px #6366f1, 0 0 0 4px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 2px #eab308, 0 0 0 4px rgba(234, 179, 8, 0.1);
 }
 
 /* Glass morphism effect */
@@ -277,7 +277,7 @@ select:focus {
 
 /* Gradient text */
 .gradient-text {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #000000 0%, #eab308 50%, #dc2626 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -305,11 +305,11 @@ select:focus {
 
     0%,
     100% {
-        box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
     }
 
     50% {
-        box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
+        box-shadow: 0 0 30px rgba(234, 179, 8, 0.6);
     }
 }
 
@@ -329,20 +329,20 @@ select:focus {
 
 /* Button hover effects */
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #000000 0%, #eab308 50%, #dc2626 100%);
     transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    background: linear-gradient(135deg, #000000 0%, #ca8a04 50%, #b91c1c 100%);
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 10px 25px rgba(234, 179, 8, 0.3);
 }
 
 /* Input focus effects */
 .input-focus:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: #eab308;
+    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.1);
     transform: scale(1.02);
 }
 
@@ -461,7 +461,7 @@ select:focus {
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #000000 0%, #eab308 50%, #dc2626 100%);
     transition: width 0.3s ease;
 }
 
@@ -475,7 +475,7 @@ select:focus {
 }
 
 .footer-link:hover {
-    color: #6366f1;
+    color: #eab308;
 }
 
 /* Mobile menu enhancements */
@@ -564,14 +564,14 @@ select:focus {
 
 /* Gradient text effects */
 .gradient-text-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #000000 0%, #eab308 50%, #dc2626 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
 .gradient-text-secondary {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #eab308 0%, #dc2626 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -579,7 +579,7 @@ select:focus {
 
 /* Enhanced button styles */
 .btn-gradient {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #000000 0%, #eab308 50%, #dc2626 100%);
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -602,7 +602,7 @@ select:focus {
 
 .btn-gradient:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 10px 25px rgba(234, 179, 8, 0.3);
 }
 
 /* Search input enhancements */
@@ -690,7 +690,7 @@ select:focus {
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #000000 0%, #eab308 50%, #dc2626 100%);
     transition: width 0.3s ease;
 }
 
