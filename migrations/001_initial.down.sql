@@ -1,0 +1,4 @@
+DROP INDEX IF EXISTS idx_videos_created;
+DROP TABLE IF EXISTS video_tags;
+DROP TABLE IF EXISTS tags;
+DROP TABLE IF EXISTS videos;
