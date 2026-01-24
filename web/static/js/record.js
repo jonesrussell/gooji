@@ -1,13 +1,13 @@
 // Video recording elements
 const preview = document.getElementById('preview');
 const recordBtn = document.getElementById('recordBtn');
-const stopBtn = document.getElementById('stopBtn');
 const uploadBtn = document.getElementById('uploadBtn');
 const uploadForm = document.getElementById('uploadForm');
 const recordingsList = document.getElementById('recordingsList');
 
 let mediaRecorder;
 let recordedChunks = [];
+let isRecording = false;
 
 // Initialize camera
 async function initCamera() {
@@ -91,6 +91,8 @@ async function initCamera() {
             preview.srcObject = null;
             preview.src = url;
             uploadBtn.disabled = false;
+            isRecording = false;
+            updateRecordButton();
         };
 
     } catch (err) {
@@ -121,20 +123,50 @@ async function initCamera() {
     }
 }
 
-// Start recording
-recordBtn.addEventListener('click', () => {
-    recordedChunks = [];
-    mediaRecorder.start();
-    recordBtn.disabled = true;
-    stopBtn.disabled = false;
-    uploadBtn.disabled = true;
-});
+// Update record button appearance based on recording state
+function updateRecordButton() {
+    const icon = recordBtn.querySelector('svg');
+    const recordingIndicator = document.getElementById('recordingIndicator');
+    
+    if (isRecording) {
+        // Recording state - show stop icon (square)
+        recordBtn.classList.remove('bg-gradient-to-r', 'from-red-500', 'to-red-600', 'hover:from-red-600', 'hover:to-red-700');
+        recordBtn.classList.add('bg-gradient-to-r', 'from-red-600', 'to-red-700', 'animate-pulse');
+        icon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M6 6h12v12H6z"></path>
+        `;
+        if (recordingIndicator) {
+            recordingIndicator.classList.remove('hidden');
+        }
+    } else {
+        // Not recording - show record icon (circle)
+        recordBtn.classList.remove('bg-gradient-to-r', 'from-red-600', 'to-red-700', 'animate-pulse');
+        recordBtn.classList.add('bg-gradient-to-r', 'from-red-500', 'to-red-600', 'hover:from-red-600', 'hover:to-red-700');
+        icon.innerHTML = `
+            <circle cx="12" cy="12" r="6" fill="currentColor"></circle>
+        `;
+        if (recordingIndicator) {
+            recordingIndicator.classList.add('hidden');
+        }
+    }
+}
 
-// Stop recording
-stopBtn.addEventListener('click', () => {
-    mediaRecorder.stop();
-    recordBtn.disabled = false;
-    stopBtn.disabled = true;
+// Toggle recording
+recordBtn.addEventListener('click', () => {
+    if (!isRecording) {
+        // Start recording
+        recordedChunks = [];
+        mediaRecorder.start();
+        isRecording = true;
+        uploadBtn.disabled = true;
+        updateRecordButton();
+        console.log('Recording started');
+    } else {
+        // Stop recording
+        mediaRecorder.stop();
+        console.log('Recording stopped');
+    }
 });
 
 // Handle form submission
