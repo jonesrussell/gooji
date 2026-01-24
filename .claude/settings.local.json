@@ -19,7 +19,10 @@
       "Bash(git -C /home/jones/dev/gooji/.worktrees/v2 add .gitignore)",
       "Bash(git -C /home/jones/dev/gooji/.worktrees/v2 diff --cached)",
       "Bash(git -C /home/jones/dev/gooji/.worktrees/v2 commit -m \"$\\(cat <<''EOF''\nfeat: add file storage service\n\n- UUID-based filename generation for security\n- Save, Delete, Open operations\n- Relative path storage for portability\n- Fix .gitignore to allow internal/storage package\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(ffmpeg:*)"
+      "Bash(ffmpeg:*)",
+      "Bash(npm install:*)",
+      "Bash(go get:*)",
+      "Bash(go doc:*)"
     ]
   }
 }
