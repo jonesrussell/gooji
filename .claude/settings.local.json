@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: add SQLite repository setup with migrations\n\n- Repository interfaces \\(Video, Device, Tag\\)\n- SQLite connection with WAL mode and foreign keys\n- Initial migration schema\n- Test for DB initialization\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: add Gallery and Home pages with empty state\n\n- Home page with hero section and navigation\n- Gallery page with video grid and empty state\n- VideoCard component for video display\n- Container utility component\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)",
+      "Skill(superpowers:finishing-a-development-branch)",
+      "Bash(gh pr create --title \"feat: Gooji v2 Phase 1 - Foundation\" --body \"$\\(cat <<''EOF''\n## Summary\n\n- Clean architecture rebuild with Go 1.25 + Vue 3 + Inertia.js\n- Domain entities \\(Video, Device\\) with state machine for moderation workflow\n- SQLite repository with WAL mode and migrations\n- Video service with approve/reject moderation operations\n- Inertia.js handlers for Gallery, Home, and Health endpoints\n- Vue 3 + Vite + Tailwind CSS frontend scaffold with Gallery page\n\n## What''s Working\n\n| Layer | Implementation |\n|-------|---------------|\n| Domain | Video entity with status transitions \\(pending → published/rejected\\) |\n| Repository | SQLite CRUD with proper error handling |\n| Service | Moderation workflow \\(ListPending, Approve, Reject\\) |\n| Handlers | Inertia.js integration, JSON health endpoint |\n| Frontend | Vue 3 scaffold \\(requires `npm install` in `web/`\\) |\n| Tests | 15 passing \\(domain, repository, service, integration\\) |\n\n## Test Plan\n\n- [x] All 15 Go tests pass \\(`go test ./...`\\)\n- [x] Backend builds \\(`go build ./cmd/server && go build ./cmd/admin`\\)\n- [x] Health endpoint returns `{\"status\":\"ok\"}`\n- [ ] Frontend builds after `npm install` in `web/`\n\n## Next Phase\n\nCore Video Flow: upload handling, thumbnail generation, video playback\n\n🤖 Generated with [Claude Code]\\(https://claude.ai/code\\)\nEOF\n\\)\")",
+      "Skill(superpowers:subagent-driven-development)",
+      "Bash(git rev-parse:*)",
+      "Bash(git -C /home/jones/dev/gooji/.worktrees/v2 status)",
+      "Bash(git -C /home/jones/dev/gooji/.worktrees/v2 diff --stat)",
+      "Bash(git -C /home/jones/dev/gooji/.worktrees/v2 log --oneline -3)",
+      "Bash(git -C /home/jones/dev/gooji/.worktrees/v2 add internal/storage/)",
+      "Bash(git -C /home/jones/dev/gooji/.worktrees/v2 add .gitignore)",
+      "Bash(git -C /home/jones/dev/gooji/.worktrees/v2 diff --cached)",
+      "Bash(git -C /home/jones/dev/gooji/.worktrees/v2 commit -m \"$\\(cat <<''EOF''\nfeat: add file storage service\n\n- UUID-based filename generation for security\n- Save, Delete, Open operations\n- Relative path storage for portability\n- Fix .gitignore to allow internal/storage package\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(ffmpeg:*)"
+    ]
+  }
+}

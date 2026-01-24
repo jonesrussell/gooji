@@ -40,10 +40,20 @@ async function initCamera() {
         console.log('Camera stream obtained successfully');
         preview.srcObject = stream;
 
+        // Play the video stream
+        preview.play().catch(err => {
+            console.error('Error playing video stream:', err);
+        });
+
         // Wait for video to be ready
         preview.onloadedmetadata = () => {
             console.log('Video metadata loaded');
             recordBtn.disabled = false;
+            // Hide the placeholder overlay when stream is active
+            const overlay = document.getElementById('cameraOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
         };
 
         // Try to use preferred MIME type, fallback to default
@@ -156,6 +166,12 @@ uploadForm.addEventListener('submit', async (e) => {
 // Load recent recordings
 async function loadRecordings() {
     try {
+        // Check if recordingsList element exists
+        if (!recordingsList) {
+            console.log('Recordings list element not found, skipping load');
+            return;
+        }
+
         const response = await fetch('/api/videos');
         if (!response.ok) {
             throw new Error('Failed to load recordings');
