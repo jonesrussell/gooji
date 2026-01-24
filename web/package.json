@@ -12,10 +12,15 @@
   "type": "commonjs",
   "dependencies": {
     "@inertiajs/vue3": "^2.3.11",
+    "lucide-vue-next": "^0.563.0",
     "vue": "^3.5.27"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "radix-vue": "^1.9.17",
+    "tailwind-merge": "^3.4.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vue-tsc": "^3.2.3"
