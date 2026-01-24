@@ -9,98 +9,115 @@ import (
 	"syscall"
 	"time"
 
+	"go.uber.org/zap"
+
 	"gooji/internal/config"
-	"gooji/internal/logger"
+	"gooji/internal/handler"
 	"gooji/internal/middleware"
-	"gooji/internal/video"
+	"gooji/internal/repository/filesystem"
+	"gooji/internal/repository/sqlite"
+	"gooji/internal/service"
 	"gooji/pkg/ffmpeg"
 )
 
 func main() {
+	// Initialize logger
+	logger, _ := zap.NewProduction()
+	if os.Getenv("APP_ENV") == "development" {
+		logger, _ = zap.NewDevelopment()
+	}
+	defer logger.Sync()
+
 	// Load configuration
 	cfg, err := config.Load("config/config.json")
 	if err != nil {
-		fmt.Printf("Failed to load configuration: %v\n", err)
-		os.Exit(1)
+		logger.Fatal("failed to load config", zap.Error(err))
 	}
 
-	// Initialize logger
-	log, err := logger.New(cfg.Storage.Logs)
+	// Initialize database
+	db, err := sqlite.NewDB("storage/gooji.db")
 	if err != nil {
-		fmt.Printf("Failed to initialize logger: %v\n", err)
-		os.Exit(1)
+		logger.Fatal("failed to open database", zap.Error(err))
 	}
-	defer log.Close()
+	defer db.Close()
 
-	// Log environment variable status
-	if os.Getenv("APP_DEBUG") == "true" {
-		log.Debug("Environment variables loaded")
-		log.Debug("APP_NAME=%s", os.Getenv("APP_NAME"))
-		log.Debug("APP_DEBUG=%s", os.Getenv("APP_DEBUG"))
+	if err := sqlite.RunMigrations(db, "migrations"); err != nil {
+		logger.Fatal("failed to run migrations", zap.Error(err))
 	}
 
-	// Create video processor
-	processor := ffmpeg.NewProcessor(cfg.FFmpeg.Path)
+	// Initialize repositories
+	videoRepo := sqlite.NewVideoRepository(db)
+	fileStorage := filesystem.NewFileStorage(cfg.Storage.Uploads, cfg.Storage.Thumbnails)
 
-	// Create video handler
-	handler, err := video.NewHandler(processor, &cfg.Storage, log)
+	// Initialize FFmpeg processor
+	processor := ffmpeg.NewProcessorWithSecurity(cfg.FFmpeg.Path, cfg.Storage.BasePath)
+
+	// Initialize services
+	videoService := service.NewVideoService(videoRepo, fileStorage, processor, logger)
+
+	// Initialize Inertia
+	isDev := os.Getenv("APP_ENV") == "development" || os.Getenv("VITE_DEV") == "true"
+	inertia, err := handler.NewInertia(isDev)
 	if err != nil {
-		log.Error("Failed to create video handler: %v", err)
-		return // Let defer handle cleanup
+		logger.Fatal("failed to create inertia", zap.Error(err))
 	}
 
-	// Create router
+	// Initialize handlers
+	pageHandler := handler.NewPageHandler(inertia, videoService, logger)
+	videoHandler := handler.NewVideoHandler(inertia, videoService, logger, cfg.Storage.BasePath)
+
+	// Set up routes
 	mux := http.NewServeMux()
 
-	// Serve static files
-	fs := http.FileServer(http.Dir("web/static"))
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-
 	// API routes
-	mux.HandleFunc("/api/videos", handler.HandleVideos)
-	mux.HandleFunc("/api/thumbnails", handler.GetThumbnail)
-	mux.HandleFunc("/api/videos/", handler.HandleVideo)
+	mux.HandleFunc("POST /api/videos", videoHandler.Upload)
+	mux.HandleFunc("GET /api/videos", videoHandler.List)
+	mux.HandleFunc("GET /api/videos/{id}", videoHandler.Get)
+	mux.HandleFunc("DELETE /api/videos/{id}", videoHandler.Delete)
+	mux.HandleFunc("GET /api/thumbnails", videoHandler.Thumbnail)
 
 	// Page routes
-	mux.HandleFunc("/", handler.HandleHome)
-	mux.HandleFunc("/record", handler.HandleRecord)
-	mux.HandleFunc("/upload", handler.HandleUploadPage)
-	mux.HandleFunc("/edit/", handler.HandleEdit)
-	mux.HandleFunc("/gallery", handler.HandleGallery)
+	mux.HandleFunc("GET /", pageHandler.Home)
+	mux.HandleFunc("GET /gallery", pageHandler.Gallery)
+	mux.HandleFunc("GET /upload", pageHandler.Upload)
+	mux.HandleFunc("GET /record", pageHandler.Record)
+	mux.HandleFunc("GET /video/{id}", pageHandler.VideoShow)
+	mux.HandleFunc("GET /edit/{id}", pageHandler.Edit)
 
-	// Health check endpoint
-	mux.HandleFunc("/health", handler.HandleHealth)
+	// Health check
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"healthy"}`))
+	})
 
-	// Create server with middleware
+	// Middleware
+	var h http.Handler = mux
+	h = middleware.Recovery(logger)(h)
+	h = middleware.Logging(logger)(h)
+	h = middleware.CORS()(h)
+	h = inertia.Middleware(h)
+
+	// Start server
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
-		Handler: middleware.Chain(mux, middleware.Logging(log), middleware.Recovery(log), middleware.CORS()),
+		Handler: h,
 	}
 
-	// Start server in a goroutine
 	go func() {
-		log.Info("Starting server on port %d", cfg.Server.Port)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Error("Failed to start server: %v", err)
-			// Don't call os.Exit here as it prevents defer from running
-			// The main function will exit naturally
+		logger.Info("starting server", zap.Int("port", cfg.Server.Port))
+		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+			logger.Fatal("server error", zap.Error(err))
 		}
 	}()
 
-	// Wait for interrupt signal
+	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	// Create shutdown context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Attempt graceful shutdown
-	log.Info("Shutting down server...")
-	if err := server.Shutdown(ctx); err != nil {
-		log.Error("Server forced to shutdown: %v", err)
-	}
-
-	log.Info("Server stopped")
+	logger.Info("shutting down server")
+	server.Shutdown(ctx)
 }

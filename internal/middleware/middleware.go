@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"gooji/internal/logger"
+	"go.uber.org/zap"
 )
 
 // Middleware represents a middleware function
@@ -19,24 +19,29 @@ func Chain(h http.Handler, middlewares ...Middleware) http.Handler {
 }
 
 // Logging logs HTTP requests
-func Logging(log *logger.Logger) Middleware {
+func Logging(log *zap.Logger) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 			next.ServeHTTP(w, r)
 			duration := time.Since(start)
-			log.Info("%s %s %s %v", r.Method, r.URL.Path, r.RemoteAddr, duration)
+			log.Info("request",
+				zap.String("method", r.Method),
+				zap.String("path", r.URL.Path),
+				zap.String("remote", r.RemoteAddr),
+				zap.Duration("duration", duration),
+			)
 		})
 	}
 }
 
 // Recovery recovers from panics
-func Recovery(log *logger.Logger) Middleware {
+func Recovery(log *zap.Logger) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
 				if err := recover(); err != nil {
-					log.Error("Panic recovered: %v", err)
+					log.Error("panic recovered", zap.Any("error", err))
 					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				}
 			}()
