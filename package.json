@@ -1,0 +1,29 @@
+{
+  "name": "gooji-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Gooji - Ojibwe Language & Culture Video Kiosk",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .ts,.tsx",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@types/node": "^20.11.0",
+    "@vitest/ui": "^1.3.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.0",
+    "vitest": "^1.3.0",
+    "@vitest/coverage-v8": "^1.3.0",
+    "happy-dom": "^12.10.0"
+  }
+}

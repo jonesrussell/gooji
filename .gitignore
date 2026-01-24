@@ -43,3 +43,21 @@ gooji
 
 # Git worktrees
 .worktrees/
+
+# Node.js
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# TypeScript build outputs
+web/static/js/*.js.map
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Vite
+.vite/
+dist/

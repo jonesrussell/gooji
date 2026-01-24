@@ -22,13 +22,15 @@ tasks:
       - go build -o bin/{{.BINARY_NAME}} main.go
 
   run:
-    desc: Run the application (production mode)
+    desc: Run the application with hot reload using Air
     cmds:
-      - go run main.go
+      - go run github.com/air-verse/air@latest
 
   dev:
-    desc: Run the application in development mode with hot reload using Air
+    desc: Run the application in development mode with hot reload (backend + frontend)
     cmds:
+      - task: frontend:dev
+        background: true
       - go run github.com/air-verse/air@latest
 
   test:
@@ -142,4 +144,34 @@ tasks:
     desc: Tidy Go modules
     cmds:
       - go mod tidy
-      - go mod verify 
+      - go mod verify
+
+  frontend:dev:
+    desc: Run Vite dev server for frontend hot reload
+    cmds:
+      - npm run dev
+    dir: .
+
+  frontend:build:
+    desc: Build frontend for production
+    cmds:
+      - npm run build
+    dir: .
+
+  frontend:lint:
+    desc: Lint frontend TypeScript code
+    cmds:
+      - npm run lint
+    dir: .
+
+  frontend:type-check:
+    desc: Type check frontend TypeScript code
+    cmds:
+      - npm run type-check
+    dir: .
+
+  frontend:test:
+    desc: Run frontend tests
+    cmds:
+      - npm run test
+    dir: . 
