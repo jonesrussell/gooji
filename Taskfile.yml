@@ -10,9 +10,10 @@ tasks:
 
   dev:
     desc: Start Go server and Vite dev server concurrently
+    deps:
+      - task: dev:frontend
     cmds:
       - task: dev:backend
-      - task: dev:frontend
 
   dev:backend:
     desc: Run Go server with Air hot reload
