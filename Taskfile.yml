@@ -11,7 +11,12 @@ tasks:
   dev:
     desc: Start Go server and Vite dev server concurrently
     cmds:
-      - task: dev:frontend &
+      - task: dev:backend
+      - task: dev:frontend
+
+  dev:backend:
+    desc: Run Go server with Air hot reload
+    cmds:
       - APP_ENV=development VITE_DEV=true go run github.com/air-verse/air@latest
 
   dev:frontend:
