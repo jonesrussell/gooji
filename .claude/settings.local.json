@@ -22,7 +22,8 @@
       "Bash(ffmpeg:*)",
       "Bash(npm install:*)",
       "Bash(go get:*)",
-      "Bash(go doc:*)"
+      "Bash(go doc:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }
