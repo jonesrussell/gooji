@@ -10,10 +10,14 @@ tasks:
 
   dev:
     desc: Start Go server and Vite dev server concurrently
-    deps:
-      - task: dev:frontend
     cmds:
-      - task: dev:backend
+      - |
+        cd web && npm run dev &
+        VITE_PID=$!
+        APP_ENV=development VITE_DEV=true go run github.com/air-verse/air@latest &
+        AIR_PID=$!
+        trap "kill $VITE_PID $AIR_PID 2>/dev/null" EXIT INT TERM
+        wait
 
   dev:backend:
     desc: Run Go server with Air hot reload
