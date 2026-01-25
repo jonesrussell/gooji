@@ -6,6 +6,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0
+	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/romsar/gonertia v1.3.5
 	go.uber.org/zap v1.27.0
 	modernc.org/sqlite v1.18.1

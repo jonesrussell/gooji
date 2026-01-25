@@ -4,84 +4,113 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Gooji (meaning "video" in Ojibwe) is a Go-based video kiosk application for recording and editing videos focused on Ojibwe language and culture. It provides a web interface for community members to record, edit, and share cultural content.
+Gooji (meaning "video" in Ojibwe) is a Go-based video platform for recording and sharing videos focused on Ojibwe language and culture. It provides a web interface for community members to record, upload, and browse cultural content.
 
-**Tech Stack:** Go 1.24+, built-in `net/http`, Uber Zap logging, FFmpeg for video processing, HTML templates with vanilla JavaScript.
+**Tech Stack:**
+- **Backend:** Go 1.24+, net/http, Inertia.js adapter, SQLite, Uber Zap logging
+- **Frontend:** Vue 3 + TypeScript, Inertia.js, Vite, Tailwind CSS v4
+- **Video Processing:** FFmpeg for thumbnails and metadata extraction
 
 ## Common Commands
 
 ```bash
-# Development with hot reload
-task dev
+# Development
+task dev              # Run Go backend with hot reload
+task frontend:dev     # Run Vite dev server for frontend
 
-# Production mode
-task run
+# Build
+task build            # Build Go binary to bin/gooji
+task frontend:build   # Build frontend to web/dist/
 
-# Build binary to bin/gooji
-task build
+# Testing
+task test             # Run Go tests with coverage
+task test-coverage    # Generate HTML coverage report
 
-# Run tests with coverage
-task test
+# Code Quality
+task lint             # Run linting (vet, staticcheck, govulncheck)
+task format           # Format Go code
 
-# Generate HTML coverage report
-task test-coverage
-
-# Run linting (vet, staticcheck, govulncheck)
-task lint
-
-# Format code
-task format
-
-# Security vulnerability scan
-task security-scan
-
-# Setup development environment (first time)
-task setup
-
-# Check FFmpeg installation
-task check-ffmpeg
+# Setup
+task setup            # First-time development environment setup
+task check-ffmpeg     # Verify FFmpeg installation
 ```
 
 ## Architecture
 
-The project follows Clean Architecture with handler → service → repository layers:
+The project follows Clean Architecture with handler → service → repository layers.
+
+### Backend Structure
 
 ```
-main.go                     # Entry point, HTTP server setup
+main.go                           # Entry point, HTTP server, Inertia setup
 internal/
-├── video/                  # Core domain - video management
-│   ├── handler.go          # HTTP handlers, template rendering
-│   ├── service.go          # Business logic, validation
-│   └── repository.go       # File-based persistence
-├── config/                 # Configuration with path validation
-├── logger/                 # Zap structured logging
-├── middleware/             # CORS, logging, panic recovery
-└── errors/                 # Domain error types
-pkg/ffmpeg/processor.go     # FFmpeg wrapper with security checks
-web/
-├── templates/              # HTML templates (base.html + content blocks)
-└── static/                 # CSS and JavaScript
-storage/                    # Runtime data (uploads, logs, metadata, thumbnails)
+├── domain/                       # Core business entities
+│   ├── video.go                  # Video, Tag, VideoListOptions
+│   └── errors.go                 # Domain errors (ErrVideoNotFound, etc.)
+├── service/                      # Business logic layer
+│   └── video.go                  # VideoService (upload, list, delete)
+├── repository/                   # Data access layer
+│   ├── interfaces.go             # VideoRepository, FileStorage interfaces
+│   ├── sqlite/                   # SQLite implementation
+│   │   ├── db.go                 # Database connection, migrations
+│   │   └── video.go              # Video CRUD operations
+│   └── filesystem/               # File storage implementation
+│       └── storage.go            # Save, delete, path management
+├── handler/                      # HTTP handlers
+│   ├── inertia.go                # Inertia.js adapter setup
+│   ├── pages.go                  # Page handlers (Home, Gallery, etc.)
+│   └── video.go                  # Video API handlers
+├── config/                       # Configuration with path validation
+├── middleware/                   # CORS, logging, panic recovery
+└── logger/                       # Zap structured logging
+pkg/ffmpeg/processor.go           # FFmpeg wrapper with security checks
 ```
 
-**Key patterns:**
-- Dependency injection via constructors
-- Interface-based design for testability
-- Template system uses base template with content blocks per page
-- File-based storage (JSON metadata, video files in storage/uploads)
+### Frontend Structure
+
+```
+web/
+├── src/
+│   ├── main.ts                   # Inertia app initialization
+│   ├── types.ts                  # Shared TypeScript types
+│   ├── pages/                    # Inertia pages (route components)
+│   │   ├── Home.vue              # Landing page
+│   │   ├── Gallery.vue           # Video gallery with search/filter
+│   │   ├── Upload.vue            # Drag-drop video upload
+│   │   ├── Record.vue            # WebRTC recording studio
+│   │   └── Video/Show.vue        # Video player page
+│   ├── components/               # Reusable Vue components
+│   │   ├── Layout.vue            # App layout with nav/footer
+│   │   └── ui/                   # UI primitives (Button, etc.)
+│   └── lib/
+│       └── utils.ts              # Utility functions
+├── vite.config.ts                # Vite configuration
+└── package.json
+```
+
+### Key Patterns
+
+- **Inertia.js:** Server-driven SPA - Go renders Inertia responses, Vue handles UI
+- **Dependency injection** via constructors for testability
+- **Interface-based design** - Repository interfaces allow mock testing
+- **SQLite** for metadata, filesystem for video/thumbnail storage
 
 ## API Routes
 
+### Pages (Inertia)
 - `GET /` - Home page
+- `GET /gallery` - Video gallery
 - `GET /record` - Recording interface
 - `GET /upload` - Video upload page
-- `GET /gallery` - Video gallery
-- `GET /edit/{id}` - Video editor
-- `GET /health` - Health check
+- `GET /video/{id}` - Video player
+
+### API (JSON)
+- `GET /api/videos` - List videos
 - `POST /api/videos` - Upload video (multipart form)
-- `GET /api/videos` - List videos (JSON)
-- `GET /api/videos/{id}` - Get video file
+- `GET /api/videos/{id}` - Stream video file
 - `DELETE /api/videos/{id}` - Delete video
+- `GET /api/thumbnails?id={id}` - Get thumbnail
+- `GET /health` - Health check
 
 ## Security Requirements
 
@@ -92,15 +121,39 @@ storage/                    # Runtime data (uploads, logs, metadata, thumbnails)
 
 **FFmpeg security:** Use `NewProcessorWithSecurity()` for operations involving user uploads. The processor validates paths and restricts operations to allowed directories.
 
-**When using `//nolint:gosec`:** Only allowed when path validation has been explicitly verified.
+**Input sanitization:** All user text input is HTML-escaped in the service layer before storage.
 
 ## Code Standards
 
+### Go
 - Use wrapped errors: `fmt.Errorf("context: %w", err)`
 - Never ignore errors with `_`
 - Use structured logging via `internal/logger` (not fmt.Printf)
 - Keep packages in `internal/` private; use `pkg/` for reusable code
 - Run `task lint` before commits
+
+### Vue/TypeScript
+- Use Vue 3 Composition API with `<script setup>`
+- TypeScript strict mode enabled
+- Tailwind CSS for styling (no custom CSS unless necessary)
+- Components use props interfaces via `defineProps<T>()`
+
+## Testing
+
+```bash
+# Run all Go tests
+go test ./...
+
+# Run with coverage
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out
+
+# Run specific package tests
+go test ./internal/service/...
+go test ./internal/repository/...
+```
+
+Test files are co-located with source: `video.go` → `video_test.go`
 
 ## Configuration
 
@@ -112,4 +165,4 @@ Configuration loads from `config/config.json` with environment variable override
 
 - **FFmpeg 6.1.1+** - Required for video processing (thumbnail generation, transcoding)
 - **Task runner** - For running build/dev commands
-- **Air** - Hot reload during development (auto-installed via `task setup`)
+- **Node.js 18+** - For frontend build tooling
